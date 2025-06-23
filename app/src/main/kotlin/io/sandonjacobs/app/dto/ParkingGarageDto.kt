@@ -32,18 +32,28 @@ data class ParkingRowDto(
  */
 data class ParkingSpaceDto(
     val id: String,
-    val rowId: String?,
     val zoneId: String,
     val garageId: String,
-    val type: String // VehicleType as string
+    val type: String, // VehicleType as string
+    val rowId: String?
 )
 
 /**
  * DTO for Location to be serialized as JSON
  */
 data class LocationDto(
-    val latitude: String,
-    val longitude: String
+    val latitude: Double,
+    val longitude: Double
+)
+
+/**
+ * DTO for Vehicle to be serialized as JSON
+ */
+data class VehicleDto(
+    val id: String,
+    val licensePlate: String,
+    val state: String,
+    val type: String
 )
 
 /**
@@ -74,16 +84,25 @@ fun ParkingRow.toDto(): ParkingRowDto {
 fun ParkingSpace.toDto(): ParkingSpaceDto {
     return ParkingSpaceDto(
         id = id,
-        rowId = if (rowId.isNotEmpty()) rowId else null,
         zoneId = zoneId,
         garageId = garageId,
-        type = type.name
+        type = type.name,
+        rowId = if (rowId.isNotEmpty()) rowId else null
     )
 }
 
 fun Location.toDto(): LocationDto {
     return LocationDto(
-        latitude = latitude,
-        longitude = longitude
+        latitude = latitude.toDouble(),
+        longitude = longitude.toDouble()
+    )
+}
+
+fun Vehicle.toDto(): VehicleDto {
+    return VehicleDto(
+        id = id,
+        licensePlate = licensePlate,
+        state = state,
+        type = type.name
     )
 } 

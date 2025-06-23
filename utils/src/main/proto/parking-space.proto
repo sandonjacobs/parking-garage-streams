@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package io.sandonjacobs.streaming.parking.model;
+
+option java_package = "io.sandonjacobs.streaming.parking.model";
+option java_multiple_files = true;
+
+import "vehicle.proto";
+
+message ParkingSpace {
+    string id = 1;
+    string row_id = 2;
+    string zone_id = 3;
+    string garage_id = 4;
+    VehicleType type = 5;
+}

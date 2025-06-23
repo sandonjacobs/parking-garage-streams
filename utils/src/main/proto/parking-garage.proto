@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package io.sandonjacobs.streaming.parking.model;
+
+option java_package = "io.sandonjacobs.streaming.parking.model";
+option java_multiple_files = true;
+
+import "parking-space.proto";
+import "commons.proto";
+
+message ParkingGarage {
+    string id = 1;
+    repeated ParkingZone parking_zones = 2;
+    Location location = 3;
+}
+
+message ParkingZone {
+    string id = 1;
+    repeated ParkingRow parking_rows = 2;
+}
+
+message ParkingRow {
+    string id = 1;
+    repeated ParkingSpace parking_spaces = 2;
+}

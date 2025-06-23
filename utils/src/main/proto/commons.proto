@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package io.sandonjacobs.streaming.parking.model;
+
+option java_package = "io.sandonjacobs.streaming.parking.model";
+option java_multiple_files = true;
+
+import "vehicle.proto";
+import "parking-space.proto";
+import "google/protobuf/timestamp.proto";
+
+message Location {
+    string latitude = 1;
+    string longitude = 2;
+}
+
+enum ParkingEventType {
+    UNKNOWN = 0;
+    ENTER = 1;
+    EXIT = 2;
+}
+
+message ParkingEvent {
+    ParkingEventType type = 1;
+    ParkingSpace space = 2;
+    Vehicle vehicle = 3;
+    google.protobuf.Timestamp timestamp = 4;
+}

@@ -22,3 +22,15 @@ protobuf {
         artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
     }
 }
+
+sourceSets {
+    main {
+        proto {
+            srcDir("src/main/proto")
+        }
+    }
+}
+
+tasks.named<Copy>("processResources") {
+    exclude("**/*.proto")
+}

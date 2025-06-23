@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: parking-garage-data-generator
+  config:
+    import: classpath:parking-garages.yml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics 

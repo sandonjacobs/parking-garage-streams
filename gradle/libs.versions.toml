@@ -17,6 +17,7 @@ kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.r
 kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 protobufJava = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobufJsonUtil = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protobuf" }
 kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }

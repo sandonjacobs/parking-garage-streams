@@ -34,3 +34,8 @@ sourceSets {
 tasks.named<Copy>("processResources") {
     exclude("**/*.proto")
 }
+
+// Handle duplicate protobuf generated classes
+tasks.named<Jar>("jar") {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}

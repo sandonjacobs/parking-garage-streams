@@ -1,0 +1,233 @@
+parking-garages:
+  garages:
+    # Downtown Raleigh - Fayetteville Street
+    - id: "raleigh-downtown-fayetteville"
+      name: "Downtown Raleigh - Fayetteville Street Garage"
+      location:
+        latitude: "35.7796"
+        longitude: "-78.6382"
+        address: "Fayetteville Street, Downtown Raleigh, NC"
+        description: "Main downtown parking garage near Fayetteville Street"
+      zones:
+        - id: "ground-floor"
+          name: "Ground Floor"
+          spaces:
+            handicap: 8
+            motorcycle: 4
+            default: 88
+        - id: "level-1"
+          name: "Level 1"
+          spaces:
+            handicap: 6
+            motorcycle: 3
+            default: 91
+        - id: "level-2"
+          name: "Level 2"
+          spaces:
+            handicap: 6
+            motorcycle: 3
+            default: 91
+
+    # North Carolina State Capitol
+    - id: "raleigh-capitol"
+      name: "North Carolina State Capitol Parking"
+      location:
+        latitude: "35.7804"
+        longitude: "-78.6391"
+        address: "1 E Edenton St, Raleigh, NC 27601"
+        description: "Parking near the North Carolina State Capitol"
+      zones:
+        - id: "main-lot"
+          name: "Main Parking Lot"
+          spaces:
+            handicap: 12
+            motorcycle: 6
+            default: 82
+        - id: "overflow"
+          name: "Overflow Parking"
+          spaces:
+            handicap: 4
+            motorcycle: 2
+            default: 94
+
+    # PNC Arena / NC State University
+    - id: "raleigh-pnc-arena"
+      name: "PNC Arena Parking Complex"
+      location:
+        latitude: "35.8103"
+        longitude: "-78.7219"
+        address: "1400 Edwards Mill Rd, Raleigh, NC 27607"
+        description: "Large parking complex for PNC Arena and NC State events"
+      zones:
+        - id: "west-lot"
+          name: "West Lot"
+          rows:
+            - id: "row-a"
+              name: "Row A"
+              spaces:
+                handicap: 3
+                motorcycle: 2
+                default: 25
+            - id: "row-b"
+              name: "Row B"
+              spaces:
+                handicap: 3
+                motorcycle: 2
+                default: 25
+            - id: "row-c"
+              name: "Row C"
+              spaces:
+                handicap: 3
+                motorcycle: 2
+                default: 25
+        - id: "east-lot"
+          name: "East Lot"
+          rows:
+            - id: "row-1"
+              name: "Row 1"
+              spaces:
+                handicap: 4
+                motorcycle: 3
+                default: 33
+            - id: "row-2"
+              name: "Row 2"
+              spaces:
+                handicap: 4
+                motorcycle: 3
+                default: 33
+            - id: "row-3"
+              name: "Row 3"
+              spaces:
+                handicap: 4
+                motorcycle: 3
+                default: 33
+
+    # Crabtree Valley Mall
+    - id: "raleigh-crabtree-mall"
+      name: "Crabtree Valley Mall Parking"
+      location:
+        latitude: "35.8347"
+        longitude: "-78.6821"
+        address: "4325 Glenwood Ave, Raleigh, NC 27612"
+        description: "Large shopping mall parking area"
+      zones:
+        - id: "north-parking"
+          name: "North Parking Deck"
+          spaces:
+            handicap: 15
+            motorcycle: 8
+            default: 177
+        - id: "south-parking"
+          name: "South Parking Deck"
+          spaces:
+            handicap: 12
+            motorcycle: 6
+            default: 182
+        - id: "surface-lot"
+          name: "Surface Parking Lot"
+          spaces:
+            handicap: 8
+            motorcycle: 4
+            default: 188
+
+    # Raleigh-Durham International Airport
+    - id: "raleigh-rdu-airport"
+      name: "RDU Airport Parking"
+      location:
+        latitude: "35.8801"
+        longitude: "-78.7880"
+        address: "2400 John Brantley Blvd, Morrisville, NC 27560"
+        description: "Raleigh-Durham International Airport parking facilities"
+      zones:
+        - id: "terminal-1"
+          name: "Terminal 1 Parking"
+          rows:
+            - id: "level-1"
+              name: "Level 1"
+              spaces:
+                handicap: 6
+                motorcycle: 4
+                default: 40
+            - id: "level-2"
+              name: "Level 2"
+              spaces:
+                handicap: 6
+                motorcycle: 4
+                default: 40
+            - id: "level-3"
+              name: "Level 3"
+              spaces:
+                handicap: 6
+                motorcycle: 4
+                default: 40
+        - id: "terminal-2"
+          name: "Terminal 2 Parking"
+          rows:
+            - id: "level-1"
+              name: "Level 1"
+              spaces:
+                handicap: 8
+                motorcycle: 5
+                default: 37
+            - id: "level-2"
+              name: "Level 2"
+              spaces:
+                handicap: 8
+                motorcycle: 5
+                default: 37
+            - id: "level-3"
+              name: "Level 3"
+              spaces:
+                handicap: 8
+                motorcycle: 5
+                default: 37
+        - id: "economy-lot"
+          name: "Economy Parking Lot"
+          spaces:
+            handicap: 10
+            motorcycle: 6
+            default: 184
+
+    # Motorcycle-Friendly Downtown Garage
+    - id: "raleigh-motorcycle-friendly"
+      name: "Downtown Motorcycle-Friendly Garage"
+      location:
+        latitude: "35.7818"
+        longitude: "-78.6375"
+        address: "Hargett Street, Downtown Raleigh, NC"
+        description: "Specialized garage with high motorcycle capacity"
+      zones:
+        - id: "motorcycle-zone"
+          name: "Motorcycle Zone"
+          spaces:
+            handicap: 0
+            motorcycle: 60
+            default: 20
+        - id: "mixed-zone"
+          name: "Mixed Vehicle Zone"
+          spaces:
+            handicap: 8
+            motorcycle: 12
+            default: 80
+
+    # Handicap-Accessible Downtown Garage
+    - id: "raleigh-accessible"
+      name: "Downtown Accessible Parking Garage"
+      location:
+        latitude: "35.7825"
+        longitude: "-78.6368"
+        address: "Wilmington Street, Downtown Raleigh, NC"
+        description: "Garage with enhanced accessibility features"
+      zones:
+        - id: "accessible-zone"
+          name: "Accessible Zone"
+          spaces:
+            handicap: 25
+            motorcycle: 5
+            default: 70
+        - id: "standard-zone"
+          name: "Standard Zone"
+          spaces:
+            handicap: 10
+            motorcycle: 4
+            default: 86 

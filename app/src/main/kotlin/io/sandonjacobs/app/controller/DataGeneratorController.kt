@@ -64,9 +64,6 @@ class DataGeneratorController(
             "handicapSpaces" to totalHandicapSpaces,
             "motorcycleSpaces" to totalMotorcycleSpaces,
             "defaultSpaces" to totalDefaultSpaces,
-            "handicapPercentage" to if (totalSpaces > 0) (totalHandicapSpaces * 100.0 / totalSpaces) else 0.0,
-            "motorcyclePercentage" to if (totalSpaces > 0) (totalMotorcycleSpaces * 100.0 / totalSpaces) else 0.0,
-            "defaultPercentage" to if (totalSpaces > 0) (totalDefaultSpaces * 100.0 / totalSpaces) else 0.0,
             "zones" to garage.parkingZones.size,
             "location" to garage.location?.let { mapOf(
                 "latitude" to it.latitude,
@@ -106,10 +103,7 @@ class DataGeneratorController(
             "totalSpaces" to totalSpaces,
             "handicapSpaces" to totalHandicapSpaces,
             "motorcycleSpaces" to totalMotorcycleSpaces,
-            "defaultSpaces" to totalDefaultSpaces,
-            "handicapPercentage" to if (totalSpaces > 0) (totalHandicapSpaces * 100.0 / totalSpaces) else 0.0,
-            "motorcyclePercentage" to if (totalSpaces > 0) (totalMotorcycleSpaces * 100.0 / totalSpaces) else 0.0,
-            "defaultPercentage" to if (totalSpaces > 0) (totalDefaultSpaces * 100.0 / totalSpaces) else 0.0
+            "defaultSpaces" to totalDefaultSpaces
         )
     }
 } 

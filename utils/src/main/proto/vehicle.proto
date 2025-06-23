@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package io.sandonjacobs.streaming.parking.model;
+
+option java_package = "io.sandonjacobs.streaming.parking.model";
+
+message Vehicle {
+  string id = 1;
+  string license_plate = 2;
+  string state = 3;  // State/province of registration
+  VehicleType type = 4;
+}
+
+enum VehicleType {
+  DEFAULT = 0;
+  HANDICAP = 1;
+  MOTORCYCLE = 2;
+}

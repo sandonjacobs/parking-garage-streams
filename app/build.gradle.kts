@@ -24,6 +24,9 @@ dependencies {
     // Protobuf Java runtime (required for generated classes)
     implementation(libs.protobufJava)
     
+    // Coroutines support
+    implementation(libs.kotlinxCoroutines)
+    
     // Development tools
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     

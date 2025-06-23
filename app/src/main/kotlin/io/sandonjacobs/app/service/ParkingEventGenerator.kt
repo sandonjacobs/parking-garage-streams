@@ -2,23 +2,23 @@ package io.sandonjacobs.app.service
 
 import io.sandonjacobs.streaming.parking.model.*
 import io.sandonjacobs.streaming.parking.utils.ParkingEventFactory
+import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalTime
-import java.util.concurrent.*
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
 @Service
 class ParkingEventGenerator {
     
     private val logger = LoggerFactory.getLogger(ParkingEventGenerator::class.java)
-    private val executor = Executors.newCachedThreadPool()
-    private val runningGenerators = ConcurrentHashMap<String, AtomicBoolean>()
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val runningGenerators = ConcurrentHashMap<String, Job>()
     
     /**
      * Starts generating parking events for a specific garage.
-     * Each garage runs in its own thread with realistic timing patterns.
+     * Each garage runs in its own coroutine with realistic timing patterns.
      */
     fun startGeneratingEvents(
         garage: ParkingGarage,
@@ -26,14 +26,18 @@ class ParkingEventGenerator {
         onEventGenerated: (ParkingEvent) -> Unit
     ) {
         val garageId = garage.id
-        val isRunning = AtomicBoolean(true)
-        runningGenerators[garageId] = isRunning
+        
+        // Cancel any existing generator for this garage
+        runningGenerators[garageId]?.cancel()
         
         logger.info("Starting event generation for garage: $garageId")
         
-        executor.submit {
+        val job = scope.launch {
             try {
-                generateEventsForGarage(garage, eventsPerMinute, isRunning, onEventGenerated)
+                generateEventsForGarage(garage, eventsPerMinute, onEventGenerated)
+            } catch (e: CancellationException) {
+                logger.info("Event generation cancelled for garage: $garageId")
+                throw e // Re-throw cancellation exceptions
             } catch (e: Exception) {
                 logger.error("Error generating events for garage $garageId", e)
             } finally {
@@ -41,13 +45,15 @@ class ParkingEventGenerator {
                 logger.info("Stopped event generation for garage: $garageId")
             }
         }
+        
+        runningGenerators[garageId] = job
     }
     
     /**
      * Stops generating events for a specific garage.
      */
     fun stopGeneratingEvents(garageId: String) {
-        runningGenerators[garageId]?.set(false)
+        runningGenerators[garageId]?.cancel()
         logger.info("Requested stop for event generation in garage: $garageId")
     }
     
@@ -55,7 +61,7 @@ class ParkingEventGenerator {
      * Stops all event generators.
      */
     fun stopAllGenerators() {
-        runningGenerators.values.forEach { it.set(false) }
+        runningGenerators.values.forEach { it.cancel() }
         logger.info("Requested stop for all event generators")
     }
     
@@ -63,7 +69,7 @@ class ParkingEventGenerator {
      * Checks if event generation is running for a specific garage.
      */
     fun isGeneratingEvents(garageId: String): Boolean {
-        return runningGenerators[garageId]?.get() ?: false
+        return runningGenerators[garageId]?.isActive ?: false
     }
     
     /**
@@ -76,10 +82,9 @@ class ParkingEventGenerator {
     /**
      * Main event generation loop for a single garage.
      */
-    private fun generateEventsForGarage(
+    private suspend fun generateEventsForGarage(
         garage: ParkingGarage,
         baseEventsPerMinute: Int,
-        isRunning: AtomicBoolean,
         onEventGenerated: (ParkingEvent) -> Unit
     ) {
         val garageId = garage.id
@@ -93,8 +98,8 @@ class ParkingEventGenerator {
         
         logger.info("Starting event generation for garage $garageId with ${allParkingSpaces.size} parking spaces")
         
-        while (isRunning.get()) {
-            try {
+        try {
+            while (true) {
                 val currentTime = LocalTime.now()
                 val timeMultiplier = getTimeMultiplier(currentTime)
                 val eventsThisMinute = (baseEventsPerMinute * timeMultiplier).toInt()
@@ -109,28 +114,25 @@ class ParkingEventGenerator {
                 // Add some randomness to the timing
                 val actualDelay = (delayBetweenEvents * (0.5 + Random.nextDouble())).toLong()
                 
-                Thread.sleep(actualDelay)
+                delay(actualDelay)
                 
-                if (isRunning.get()) {
-                    // Select a random parking space
-                    val randomSpace = allParkingSpaces.random()
-                    
-                    // Generate a parking event
-                    val event = ParkingEventFactory.createRandomEvent(garageId, randomSpace, location)
-                    
-                    // Call the callback with the generated event
-                    onEventGenerated(event)
-                    
-                    logger.debug("Generated ${event.type} event for garage $garageId, space ${event.space.id}, vehicle ${event.vehicle.licensePlate}")
-                }
+                // Select a random parking space
+                val randomSpace = allParkingSpaces.random()
                 
-            } catch (e: InterruptedException) {
-                logger.info("Event generation interrupted for garage: $garageId")
-                break
-            } catch (e: Exception) {
-                logger.error("Error in event generation loop for garage: $garageId", e)
-                Thread.sleep(5000) // Wait 5 seconds before retrying
+                // Generate a parking event
+                val event = ParkingEventFactory.createRandomEvent(garageId, randomSpace, location)
+                
+                // Call the callback with the generated event
+                onEventGenerated(event)
+                
+                logger.debug("Generated ${event.type} event for garage $garageId, space ${event.space.id}, vehicle ${event.vehicle.licensePlate}")
             }
+        } catch (e: CancellationException) {
+            logger.info("Event generation cancelled for garage: $garageId")
+            throw e // Re-throw cancellation exceptions
+        } catch (e: Exception) {
+            logger.error("Error in event generation loop for garage: $garageId", e)
+            // Don't retry on general exceptions, just log and exit
         }
     }
     
@@ -174,18 +176,11 @@ class ParkingEventGenerator {
     }
     
     /**
-     * Shuts down the executor service.
+     * Shuts down the coroutine scope and cancels all running generators.
      */
     fun shutdown() {
         stopAllGenerators()
-        executor.shutdown()
-        try {
-            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-                executor.shutdownNow()
-            }
-        } catch (e: InterruptedException) {
-            executor.shutdownNow()
-            Thread.currentThread().interrupt()
-        }
+        scope.cancel()
+        logger.info("Shutdown ParkingEventGenerator")
     }
 } 

@@ -130,7 +130,7 @@ class ParkingEventGenerator(
                 val event = ParkingEventFactory.createRandomEvent(garageId, randomSpace, location)
                 
                 // Send the event to Kafka
-                kafkaProducer.sendParkingEvent(event)
+                kafkaProducer.sendParkingEventSync(event)
                 
                 logger.debug("Generated ${event.type} event for garage $garageId, space ${event.space.id}, vehicle ${event.vehicle.licensePlate}")
             }

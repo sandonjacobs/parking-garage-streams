@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+app:
+  kafka:
+    topic:
+      parking-events: parking-events
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,metrics
+
+spring:
+  application:
+    name: parking-garage-data-generator
+  config:
+    activate:
+      on-profile: cc
+    import: file:${user.home}/tools/parking-garage-streams-cc.properties
+
+  kafka:
+    bootstrap-servers: ${CC_BROKER}
+    schema-registry:
+      url: ${CC_SCHEMA_REGISTRY_URL}
+    producer:
+      client-id: "parking-garage-streams-cc"
+      compression-type: "zstd"
+      key-serializer: "org.apache.kafka.common.serialization.StringSerializer"
+      value-serializer: "io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer"
+      properties:
+        sasl.mechanism: "PLAIN"
+        sasl.jaas.config: "org.apache.kafka.common.security.plain.PlainLoginModule required username='${KAFKA_KEY_ID}' password='${KAFKA_KEY_SECRET}';"
+        security.protocol: "SASL_SSL"
+        schema.registry.url: "${CC_SCHEMA_REGISTRY_URL}"
+        basic.auth.credentials.source: "USER_INFO"
+        basic.auth.user.info: "${SCHEMA_REGISTRY_KEY_ID}:${SCHEMA_REGISTRY_KEY_SECRET}"
+        auto.register.schemas: "true"
+        client.dns.lookup: "use_all_dns_ips"
+        # Confluent Cloud specific settings
+        acks: "all"
+        retries: 3
+        batch.size: 16384
+        linger.ms: 1
+        buffer.memory: 33554432
+        # SSL settings for Confluent Cloud
+        ssl.endpoint.identification.algorithm: "https"
+
+#    consumer:
+#      group-id: "spring-kafka-cc"
+#      auto-offset-reset: earliest
+#      key-deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
+#      value-deserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
+#      security:
+#        protocol: "SASL_SSL"
+#      properties:
+#        "[specific.avro.reader]": true

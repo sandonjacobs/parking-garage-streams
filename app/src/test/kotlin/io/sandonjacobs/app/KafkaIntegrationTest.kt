@@ -25,6 +25,10 @@ import java.util.concurrent.TimeUnit
 @TestPropertySource(properties = [
     "spring.kafka.bootstrap-servers=\${spring.embedded.kafka.brokers}",
     "spring.kafka.schema-registry.url=mock://test",
+    "spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer",
+    "spring.kafka.producer.value-serializer=io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer",
+    "spring.kafka.producer.properties.schema.registry.url=mock://test",
+    "spring.kafka.producer.properties.auto.register.schemas=true",
     "app.kafka.topic.parking-events=parking-events"
 ])
 class KafkaIntegrationTest {
@@ -61,9 +65,11 @@ class KafkaIntegrationTest {
         consumerProps[ConsumerConfig.GROUP_ID_CONFIG] = "test-group"
         consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         consumerProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        consumerProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+        consumerProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = "io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer"
+        consumerProps["schema.registry.url"] = "mock://test"
+        consumerProps["specific.protobuf.value.type"] = "io.sandonjacobs.streaming.parking.model.ParkingEvent"
         
-        val consumerFactory = DefaultKafkaConsumerFactory<String, String>(consumerProps)
+        val consumerFactory = DefaultKafkaConsumerFactory<String, ParkingEvent>(consumerProps)
         val consumer = consumerFactory.createConsumer()
         consumer.subscribe(listOf(topicName))
 
@@ -83,11 +89,13 @@ class KafkaIntegrationTest {
                 val records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(1))
                 assert(records.count() > 0)
                 
-                val record: ConsumerRecord<String, String> = records.iterator().next()
+                val record: ConsumerRecord<String, ParkingEvent> = records.iterator().next()
                 
                 assert(record.key() == spaceId)
                 assert(record.topic() == topicName)
                 assert(record.partition() == 0)
+                assert(record.value() != null)
+                assert(record.value() is ParkingEvent)
             }
 
         consumer.close()

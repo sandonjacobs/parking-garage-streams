@@ -9,7 +9,7 @@ kotlinxSerializationJSON = "1.8.1"
 kotlinxCoroutines = "1.10.2"
 protobuf = "3.25.3"
 protobufGradlePlugin = "0.9.5"
-kafka = "4.0.0"
+kafka = "3.9.1"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

@@ -1,6 +1,7 @@
 package io.sandonjacobs.app
 
 import io.sandonjacobs.app.config.ParkingGarageConfigurationLoader
+import io.sandonjacobs.app.service.ParkingEventGenerator
 import io.sandonjacobs.app.service.ParkingGarageService
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -13,7 +14,8 @@ open class DataGeneratorApplication {
     @Bean
     open fun startupRunner(
         parkingGarageService: ParkingGarageService,
-        configLoader: ParkingGarageConfigurationLoader
+        configLoader: ParkingGarageConfigurationLoader,
+        eventGenerator: ParkingEventGenerator
     ): CommandLineRunner {
         return CommandLineRunner { args ->
             println("🚗 Initializing Parking Garage Data Generator...")
@@ -55,7 +57,15 @@ open class DataGeneratorApplication {
             println("   Total Zones: $totalZones")
             println("   Total Rows: $totalRows")
             println("   Total Spaces: $totalSpaces")
-            println("\n🎯 Application ready! Parking garage data has been initialized.")
+            
+            // Start generating events for all garages
+            println("\n🚀 Starting event generation and sending to Kafka...")
+            garages.forEach { garage ->
+                eventGenerator.startGeneratingEvents(garage, eventsPerMinute = 5)
+                println("   📡 Started event generation for garage: ${garage.id}")
+            }
+            
+            println("\n🎯 Application ready! Parking events are being generated and sent to Kafka topic '${eventGenerator.getTopicName()}' (${eventGenerator.getActiveGarages().size} garages active)")
         }
     }
 }

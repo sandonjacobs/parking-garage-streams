@@ -10,7 +10,9 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
 @Service
-class ParkingEventGenerator {
+class ParkingEventGenerator(
+    private val kafkaProducer: KafkaParkingEventProducer
+) {
     
     private val logger = LoggerFactory.getLogger(ParkingEventGenerator::class.java)
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -22,8 +24,7 @@ class ParkingEventGenerator {
      */
     fun startGeneratingEvents(
         garage: ParkingGarage,
-        eventsPerMinute: Int = 10,
-        onEventGenerated: (ParkingEvent) -> Unit
+        eventsPerMinute: Int = 10
     ) {
         val garageId = garage.id
         
@@ -34,7 +35,7 @@ class ParkingEventGenerator {
         
         val job = scope.launch {
             try {
-                generateEventsForGarage(garage, eventsPerMinute, onEventGenerated)
+                generateEventsForGarage(garage, eventsPerMinute)
             } catch (e: CancellationException) {
                 logger.info("Event generation cancelled for garage: $garageId")
                 throw e // Re-throw cancellation exceptions
@@ -80,12 +81,18 @@ class ParkingEventGenerator {
     }
     
     /**
+     * Gets the Kafka topic name being used for parking events.
+     */
+    fun getTopicName(): String {
+        return kafkaProducer.getTopicName()
+    }
+    
+    /**
      * Main event generation loop for a single garage.
      */
     private suspend fun generateEventsForGarage(
         garage: ParkingGarage,
-        baseEventsPerMinute: Int,
-        onEventGenerated: (ParkingEvent) -> Unit
+        baseEventsPerMinute: Int
     ) {
         val garageId = garage.id
         val location = garage.location
@@ -122,8 +129,8 @@ class ParkingEventGenerator {
                 // Generate a parking event
                 val event = ParkingEventFactory.createRandomEvent(garageId, randomSpace, location)
                 
-                // Call the callback with the generated event
-                onEventGenerated(event)
+                // Send the event to Kafka
+                kafkaProducer.sendParkingEvent(event)
                 
                 logger.debug("Generated ${event.type} event for garage $garageId, space ${event.space.id}, vehicle ${event.vehicle.licensePlate}")
             }

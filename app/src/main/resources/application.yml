@@ -6,6 +6,15 @@ spring:
     name: parking-garage-data-generator
   config:
     import: classpath:parking-garages.yml
+  kafka:
+    bootstrap-servers: localhost:9092
+    schema-registry:
+      url: http://localhost:8081
+
+app:
+  kafka:
+    topic:
+      parking-events: parking-events
 
 management:
   endpoints:

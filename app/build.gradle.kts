@@ -17,12 +17,19 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     
+    // Spring Kafka for KafkaTemplate and producer functionality
+    implementation("org.springframework.kafka:spring-kafka")
+    
     // Configuration and YAML support
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     
     // Protobuf Java runtime (required for generated classes)
     implementation(libs.protobufJava)
+    
+    // Confluent Schema Registry and Protobuf serializer
+    implementation("io.confluent:kafka-protobuf-serializer:7.9.1")
+    implementation("io.confluent:kafka-schema-registry-client:7.9.1")
     
     // Coroutines support
     implementation(libs.kotlinxCoroutines)
@@ -32,4 +39,5 @@ dependencies {
     
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
 }

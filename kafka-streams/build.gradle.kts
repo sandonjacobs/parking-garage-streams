@@ -4,13 +4,14 @@ plugins {
     id("buildsrc.convention.kotlin-jvm")
     // Apply Kotlin Serialization plugin from `gradle/libs.versions.toml`.
     alias(libs.plugins.kotlinPluginSerialization)
-//    // Apply Protobuf plugin for Java code generation
-//    alias(libs.plugins.protobuf)
 }
 
 dependencies {
     // Apply the kotlinx bundle of dependencies from the version catalog (`gradle/libs.versions.toml`).
     implementation(libs.bundles.kotlinxEcosystem)
+    
+    // Command line argument parsing
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
     
     // Kafka Streams dependencies
     implementation(libs.kafkaStreams)
@@ -18,32 +19,21 @@ dependencies {
     
     // Protobuf dependencies
     implementation(libs.protobufJava)
-    
+    // Confluent Schema Registry and Protobuf serializer
+    implementation(libs.confluentProtobuf)
+    implementation(libs.confluentKafkaStreamsProtobuf)
+    implementation(libs.confluentSchemaRegistryClient)
+
     // Project dependencies
     implementation(project(":utils"))
+
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+    implementation("ch.qos.logback:logback-classic:1.5.18")
     
     // Test dependencies
     testImplementation(kotlin("test"))
     testImplementation(libs.kafkaStreamsTestUtils)
 }
 
-//// Configure protobuf code generation
-//protobuf {
-//    protoc {
-//        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
-//    }
-//}
-
-//// Exclude .proto files from being processed as resources
-//tasks.named<Copy>("processResources") {
-//    exclude("**/*.proto")
-//}
-//
-//// Configure source sets
-//sourceSets {
-//    main {
-//        proto {
-//            srcDir("src/main/proto")
-//        }
-//    }
-//}

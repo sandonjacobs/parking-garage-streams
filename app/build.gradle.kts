@@ -28,9 +28,9 @@ dependencies {
     implementation(libs.protobufJava)
     
     // Confluent Schema Registry and Protobuf serializer
-    implementation("io.confluent:kafka-protobuf-serializer:7.9.1")
-    implementation("io.confluent:kafka-schema-registry-client:7.9.1")
-    
+    implementation(libs.confluentProtobuf)
+    implementation(libs.confluentSchemaRegistryClient)
+
     // Coroutines support
     implementation(libs.kotlinxCoroutines)
     

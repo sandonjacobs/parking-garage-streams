@@ -10,6 +10,7 @@ kotlinxCoroutines = "1.10.2"
 protobuf = "3.25.3"
 protobufGradlePlugin = "0.9.5"
 kafka = "3.9.1"
+confluent = "7.9.1"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -21,6 +22,11 @@ protobufJsonUtil = { module = "com.google.protobuf:protobuf-java-util", version.
 kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
+
+confluentKafkaStreamsProtobuf = { module = "io.confluent:kafka-streams-protobuf-serde", version.ref = "confluent" }
+confluentProtobuf = { module = "io.confluent:kafka-protobuf-serializer", version.ref = "confluent" }
+confluentSchemaRegistryClient = { module = "io.confluent:kafka-schema-registry-client", version.ref = "confluent" }
+
 
 # Libraries can be bundled together for easier import
 [bundles]

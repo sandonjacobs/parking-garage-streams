@@ -19,14 +19,14 @@ spring:
   config:
     activate:
       on-profile: cc
-    import: file:${user.home}/tools/parking-garage-streams-cc.properties
+    import: file:${user.home}/tools/parking-garage-app-cc.properties
 
   kafka:
     bootstrap-servers: ${CC_BROKER}
     schema-registry:
       url: ${CC_SCHEMA_REGISTRY_URL}
     producer:
-      client-id: "parking-garage-streams-cc"
+      client-id: "parking-garage-app-cc"
       compression-type: "zstd"
       key-serializer: "org.apache.kafka.common.serialization.StringSerializer"
       value-serializer: "io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer"

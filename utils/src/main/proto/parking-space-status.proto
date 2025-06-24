@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package io.sandonjacobs.streaming.parking.model;
+
+option java_package = "io.sandonjacobs.streaming.parking.status";
+option java_multiple_files = true;
+
+import "vehicle.proto";
+import "parking-space.proto";
+import "google/protobuf/timestamp.proto";
+
+enum SpaceStatus {
+  VACANT = 0;
+  OCCUPIED = 1;
+}
+
+message ParkingSpaceStatus {
+  string id = 1;
+  ParkingSpace space = 2;
+  SpaceStatus status = 3;
+  optional Vehicle vehicle = 4;
+  google.protobuf.Timestamp last_updated = 5;
+}

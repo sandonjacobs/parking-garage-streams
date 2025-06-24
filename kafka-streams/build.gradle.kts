@@ -4,8 +4,8 @@ plugins {
     id("buildsrc.convention.kotlin-jvm")
     // Apply Kotlin Serialization plugin from `gradle/libs.versions.toml`.
     alias(libs.plugins.kotlinPluginSerialization)
-    // Apply Protobuf plugin for Java code generation
-    alias(libs.plugins.protobuf)
+//    // Apply Protobuf plugin for Java code generation
+//    alias(libs.plugins.protobuf)
 }
 
 dependencies {
@@ -27,23 +27,23 @@ dependencies {
     testImplementation(libs.kafkaStreamsTestUtils)
 }
 
-// Configure protobuf code generation
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
-    }
-}
+//// Configure protobuf code generation
+//protobuf {
+//    protoc {
+//        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
+//    }
+//}
 
-// Exclude .proto files from being processed as resources
-tasks.named<Copy>("processResources") {
-    exclude("**/*.proto")
-}
-
-// Configure source sets
-sourceSets {
-    main {
-        proto {
-            srcDir("src/main/proto")
-        }
-    }
-} 
+//// Exclude .proto files from being processed as resources
+//tasks.named<Copy>("processResources") {
+//    exclude("**/*.proto")
+//}
+//
+//// Configure source sets
+//sourceSets {
+//    main {
+//        proto {
+//            srcDir("src/main/proto")
+//        }
+//    }
+//}

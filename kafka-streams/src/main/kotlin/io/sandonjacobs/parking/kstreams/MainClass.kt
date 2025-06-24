@@ -3,8 +3,11 @@ package io.sandonjacobs.parking.kstreams
 import io.sandonjacobs.parking.kstreams.config.StreamsConfigLoader
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
+import org.apache.kafka.streams.KafkaStreams
+import org.slf4j.LoggerFactory
 
 fun main(args: Array<String>) {
+    val logger = LoggerFactory.getLogger("MainClass")
     val parser = ArgParser("kafka-streams")
     val ccConfigFile by parser.option(
         ArgType.String,
@@ -23,26 +26,46 @@ fun main(args: Array<String>) {
     try {
         parser.parse(args)
         
-        // Validate that exactly one config option is provided
-        when {
+        // Load configuration based on provided option
+        val streamsProperties = when {
             ccConfigFile != null && kafkaConfigFile != null -> {
                 throw IllegalArgumentException("Cannot specify both --cc-config and --kafka-config. Choose one.")
             }
             ccConfigFile != null -> {
-                val streamsProperties = StreamsConfigLoader.loadConfluentCloudConfig(ccConfigFile!!)
-                println("Loaded Confluent Cloud configuration from: $ccConfigFile")
+                logger.info("Loading Confluent Cloud configuration from: $ccConfigFile")
+                StreamsConfigLoader.loadConfluentCloudConfig(ccConfigFile!!)
             }
             kafkaConfigFile != null -> {
-                val streamsProperties = StreamsConfigLoader.loadFromFile(kafkaConfigFile!!)
-                println("Loaded Kafka configuration from: $kafkaConfigFile")
+                logger.info("Loading Kafka configuration from: $kafkaConfigFile")
+                StreamsConfigLoader.loadFromFile(kafkaConfigFile!!)
             }
             else -> {
                 throw IllegalArgumentException("Must specify either --cc-config or --kafka-config")
             }
         }
         
-        // TODO: Initialize and start Kafka Streams application with the loaded properties
+//        // Build the topology
+//        val topology = ParkingSpaceStatusTopology().buildTopology()
+//        logger.info("Built topology: ${topology.describe()}")
+//
+//        // Create and start the Kafka Streams application
+//        val streams = KafkaStreams(topology, streamsProperties)
+//
+//        // Add shutdown hook for graceful shutdown
+//        Runtime.getRuntime().addShutdownHook(Thread {
+//            logger.info("Shutting down Kafka Streams application...")
+//            streams.close()
+//        })
+//
+//        // Start the streams application
+//        streams.start()
+//        logger.info("Kafka Streams application started successfully")
+//
+//        // Keep the application running
+//        streams.close()
+        
     } catch (e: Exception) {
+        logger.error("Error: ${e.message}", e)
         System.err.println("Error: ${e.message}")
         System.err.println("Usage:")
         System.err.println("  --cc-config <file-path> or -c <file-path> (for Confluent Cloud)")

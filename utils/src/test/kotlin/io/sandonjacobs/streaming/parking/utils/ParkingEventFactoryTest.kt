@@ -2,15 +2,9 @@ package io.sandonjacobs.streaming.parking.utils
 
 import io.sandonjacobs.streaming.parking.model.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Assertions.*
 
 class ParkingEventFactoryTest {
-    
-    @BeforeEach
-    fun setUp() {
-        ParkingEventFactory.clearActiveVehicles()
-    }
     
     @Test
     fun `should create entry event with correct data`() {
@@ -73,30 +67,6 @@ class ParkingEventFactoryTest {
     }
     
     @Test
-    fun `should track active vehicles correctly`() {
-        // Given
-        val garageId = "test-garage"
-        val parkingSpace = ParkingSpace.newBuilder()
-            .setId("test-space")
-            .setZoneId("test-zone")
-            .setGarageId(garageId)
-            .setType(VehicleType.DEFAULT)
-            .build()
-        
-        // When - create entry event
-        val entryEvent = ParkingEventFactory.createEntryEvent(garageId, parkingSpace)
-        
-        // Then - vehicle should be tracked as active
-        assertEquals(1, ParkingEventFactory.getActiveVehicleCount(garageId))
-        
-        // When - create exit event
-        val exitEvent = ParkingEventFactory.createExitEvent(garageId, "test-zone", "test-space", entryEvent.vehicle)
-        
-        // Then - vehicle should no longer be tracked as active
-        assertEquals(0, ParkingEventFactory.getActiveVehicleCount(garageId))
-    }
-    
-    @Test
     fun `should create random events with realistic distribution`() {
         // Given
         val garageId = "test-garage"
@@ -120,25 +90,4 @@ class ParkingEventFactoryTest {
         assertTrue(exitEvents >= 0, "Should have zero or more exit events")
         assertEquals(10, entryEvents + exitEvents, "Total events should equal 10")
     }
-    
-//    @Test
-//    fun `should generate unique event IDs`() {
-//        // Given
-//        val garageId = "test-garage"
-//        val parkingSpace = ParkingSpace.newBuilder()
-//            .setId("test-space")
-//            .setZoneId("test-zone")
-//            .setGarageId(garageId)
-//            .setType(VehicleType.DEFAULT)
-//            .build()
-//
-//        // When - create multiple events
-//        val events = (1..5).map {
-//            ParkingEventFactory.createEntryEvent(garageId, "test-zone", "test-space", parkingSpace)
-//        }
-//
-//        // Then - all event IDs should be unique
-//        val eventIds = events.map { it.id }.toSet()
-//        assertEquals(5, eventIds.size, "All event IDs should be unique")
-//    }
 } 

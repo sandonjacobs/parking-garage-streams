@@ -149,13 +149,11 @@ class ParkingEventController(
         val status = garages.map { garageConfig ->
             val garageId = garageConfig.id
             val isActive = parkingEventGenerator.isGeneratingEvents(garageId)
-            val activeVehicleCount = ParkingEventFactory.getActiveVehicleCount(garageId)
             
             mapOf(
                 "garageId" to garageId,
                 "name" to garageConfig.name,
                 "isGeneratingEvents" to isActive,
-                "activeVehicleCount" to activeVehicleCount,
                 "totalSpaces" to calculateTotalSpaces(garageConfig)
             )
         }
@@ -186,20 +184,13 @@ class ParkingEventController(
         }
         
         val isActive = parkingEventGenerator.isGeneratingEvents(garageId)
-        val activeVehicleCount = ParkingEventFactory.getActiveVehicleCount(garageId)
         val totalSpaces = calculateTotalSpaces(targetGarage)
         
         return ResponseEntity.ok(mapOf(
             "garageId" to garageId,
             "name" to targetGarage.name,
             "isGeneratingEvents" to isActive,
-            "activeVehicleCount" to activeVehicleCount,
-            "totalSpaces" to totalSpaces,
-            "occupancyPercentage" to if (totalSpaces > 0) {
-                (activeVehicleCount * 100.0 / totalSpaces).toInt()
-            } else {
-                0
-            }
+            "totalSpaces" to totalSpaces
         ))
     }
     

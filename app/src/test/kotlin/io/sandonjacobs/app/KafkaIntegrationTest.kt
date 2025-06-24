@@ -1,6 +1,6 @@
 package io.sandonjacobs.app
 
-import io.sandonjacobs.app.service.KafkaParkingEventProducer
+import io.sandonjacobs.app.kafka.ParkingEventProducer
 import io.sandonjacobs.streaming.parking.model.*
 import io.sandonjacobs.streaming.parking.utils.ParkingEventFactory
 import io.sandonjacobs.streaming.parking.utils.ParkingGarageFactory
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 class KafkaIntegrationTest {
 
     @Autowired
-    private lateinit var kafkaProducer: KafkaParkingEventProducer
+    private lateinit var kafkaProducer: ParkingEventProducer
 
     @Test
     fun `should send parking event to kafka`() {

@@ -1,5 +1,6 @@
 package io.sandonjacobs.app.service
 
+import io.sandonjacobs.app.kafka.ParkingEventProducer
 import io.sandonjacobs.streaming.parking.model.*
 import io.sandonjacobs.streaming.parking.utils.ParkingEventFactory
 import kotlinx.coroutines.*
@@ -11,7 +12,7 @@ import kotlin.random.Random
 
 @Service
 class ParkingEventGenerator(
-    private val kafkaProducer: KafkaParkingEventProducer
+    private val kafkaProducer: ParkingEventProducer
 ) {
     
     private val logger = LoggerFactory.getLogger(ParkingEventGenerator::class.java)

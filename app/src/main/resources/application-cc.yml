@@ -4,6 +4,7 @@ server:
 app:
   kafka:
     topic:
+      parking-garage: parking-garage
       parking-events: parking-events
 
 #management:

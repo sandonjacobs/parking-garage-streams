@@ -1,84 +1,17 @@
 package io.sandonjacobs.app.controller
 
-import io.sandonjacobs.app.config.ParkingGarageConfigurationLoader
-import io.sandonjacobs.app.service.KafkaParkingEventProducer
 import io.sandonjacobs.app.service.ParkingEventGenerator
-import io.sandonjacobs.app.service.ParkingGarageService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/parking-events")
 class ParkingEventController(
-    private val eventGenerator: ParkingEventGenerator,
-    private val kafkaProducer: KafkaParkingEventProducer,
-    private val garageService: ParkingGarageService,
-    private val parkingGarageConfigurationLoader: ParkingGarageConfigurationLoader
+    private val eventGenerator: ParkingEventGenerator
 ) {
-
-    /**
-     * Starts generating parking events for all configured garages.
-     */
-    @PostMapping("/start")
-    fun startEventGeneration(
-        @RequestParam(defaultValue = "10") eventsPerMinute: Int
-    ): ResponseEntity<Map<String, Any>> {
-        val garages = parkingGarageConfigurationLoader.garages
-        val startedGarages = mutableListOf<String>()
-        
-        garages.forEach { garageConfig ->
-            val garage = garageService.createParkingGarage(garageConfig)
-            val garageId = garage.id
-            
-            if (!eventGenerator.isGeneratingEvents(garageId)) {
-                eventGenerator.startGeneratingEvents(garage, eventsPerMinute)
-                startedGarages.add(garageId)
-            }
-        }
-        
-        return ResponseEntity.ok(mapOf(
-            "message" to "Started event generation",
-            "startedGarages" to startedGarages,
-            "totalGarages" to garages.size,
-            "eventsPerMinute" to eventsPerMinute,
-            "topic" to kafkaProducer.getTopicName()
-        ))
-    }
-
-    /**
-     * Starts generating parking events for a specific garage.
-     */
-    @PostMapping("/start/{garageId}")
-    fun startEventGenerationForGarage(
-        @PathVariable garageId: String,
-        @RequestParam(defaultValue = "10") eventsPerMinute: Int
-    ): ResponseEntity<Map<String, Any>> {
-        val garages = parkingGarageConfigurationLoader.garages
-        val targetGarage = garages.find { it.id == garageId }
-        
-        if (targetGarage == null) {
-            return ResponseEntity.badRequest().body(mapOf(
-                "error" to "Garage not found: $garageId"
-            ))
-        }
-        
-        if (eventGenerator.isGeneratingEvents(garageId)) {
-            return ResponseEntity.badRequest().body(mapOf(
-                "error" to "Event generation already running for garage: $garageId"
-            ))
-        }
-        
-        val garage = garageService.createParkingGarage(targetGarage)
-        eventGenerator.startGeneratingEvents(garage, eventsPerMinute)
-        
-        return ResponseEntity.ok(mapOf(
-            "message" to "Started event generation for garage: $garageId",
-            "garageId" to garageId,
-            "eventsPerMinute" to eventsPerMinute,
-            "topic" to kafkaProducer.getTopicName()
-        ))
-    }
-
     /**
      * Stops generating parking events for a specific garage.
      */

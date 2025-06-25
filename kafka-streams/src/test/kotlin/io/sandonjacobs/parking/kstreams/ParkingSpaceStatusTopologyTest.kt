@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 
 class ParkingSpaceStatusTopologyTest {
     
@@ -80,7 +82,7 @@ class ParkingSpaceStatusTopologyTest {
     }
     
     @Test
-    fun `should not process EXIT events`() {
+    fun `process EXIT events`() {
         // Given
         val parkingSpace = createTestParkingSpace("space-1", "zone-1", "garage-1")
         val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.DEFAULT)
@@ -91,7 +93,11 @@ class ParkingSpaceStatusTopologyTest {
         
         // Then
         val outputRecords = outputTopic.readRecordsToList()
-        assertEquals(0, outputRecords.size)
+        assertEquals(1, outputRecords.size)
+        val vacantEvent = outputRecords[0].value
+        assertEquals(parkingSpace.id, vacantEvent.id)
+        assertEquals(SpaceStatus.VACANT, vacantEvent.status)
+        assertFalse(vacantEvent.hasVehicle())
     }
     
     @Test
@@ -141,11 +147,11 @@ class ParkingSpaceStatusTopologyTest {
         
         // Then
         val outputRecords = outputTopic.readRecordsToList()
-        assertEquals(1, outputRecords.size) // Only ENTER event should be processed
-        
-        val status = outputRecords[0].value
-        assertEquals(parkingSpace.id, status.id)
-        assertEquals(SpaceStatus.OCCUPIED, status.status)
+        assertEquals(2, outputRecords.size) // Only ENTER event should be processed
+
+        val outputValues = outputRecords.map { it.value }
+        assertNotNull(outputValues.find { ps -> ps.id.equals(parkingSpace.id) && ps.status.equals(SpaceStatus.OCCUPIED) })
+        assertNotNull(outputValues.find { ps -> ps.id.equals(parkingSpace.id) && ps.status.equals(SpaceStatus.VACANT) })
     }
     
     // Helper functions to create test data

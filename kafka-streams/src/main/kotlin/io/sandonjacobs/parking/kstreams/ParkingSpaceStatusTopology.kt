@@ -1,7 +1,10 @@
 package io.sandonjacobs.parking.kstreams
 
+import com.google.protobuf.Timestamp
 import io.sandonjacobs.streaming.parking.model.ParkingEvent
 import io.sandonjacobs.streaming.parking.model.ParkingEventType
+import io.sandonjacobs.streaming.parking.model.Vehicle
+import io.sandonjacobs.streaming.parking.model.VehicleOrBuilder
 import io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus
 import io.sandonjacobs.streaming.parking.status.SpaceStatus
 import org.apache.kafka.common.serialization.Serde
@@ -20,60 +23,85 @@ class ParkingSpaceStatusTopology(
     private val parkingEventSerde: Serde<ParkingEvent>,
     private val parkingSpaceStatusSerde: Serde<ParkingSpaceStatus>
 ) {
-    
+
     private val logger = LoggerFactory.getLogger(ParkingSpaceStatusTopology::class.java)
-    
+
     companion object {
         const val PARKING_EVENTS_TOPIC = "parking-events"
         const val PARKING_SPACE_STATUS_TOPIC = "parking-space-status"
     }
-    
+
     /**
      * Builds the Kafka Streams topology.
      */
     fun buildTopology(): Topology {
         val builder = StreamsBuilder()
-        
+
         // Stream from parking-events topic
         val parkingEventsStream = builder.stream(
             PARKING_EVENTS_TOPIC,
             Consumed.with(Serdes.String(), parkingEventSerde)
         )
-        
+
         // Process ENTER events to create OCCUPIED status
         parkingEventsStream
             .peek { _, event -> logger.debug("incoming parking event for space -> {}", event.space) }
-            .filter { _, event ->
-                event.type == ParkingEventType.ENTER
-            }
             .mapValues { _, event ->
-                logger.debug("space {} being marked as OCCUPIED", event.space)
-                createOccupiedStatus(event)
+                when (event.type) {
+                    ParkingEventType.ENTER -> {
+                        logger.debug("space {} being marked as OCCUPIED", event.space)
+                        createOccupiedStatus(event)
+                    }
+                    else -> {
+                        logger.debug("space {} being marked as VACANT due to event type {}", event.space, event.type)
+                        createVacantStatus(event)
+                    }
+                }
             }
+            .peek { _, event -> logger.debug("vehicle on event {}", event?.vehicle)}
             .to(
                 PARKING_SPACE_STATUS_TOPIC,
                 Produced.with(Serdes.String(), parkingSpaceStatusSerde)
             )
-        
+
         logger.info("Built ParkingSpaceStatus topology")
         return builder.build()
     }
-    
+
+    private fun createVacantStatus(event: ParkingEvent): ParkingSpaceStatus? {
+        val now = Instant.now()
+
+        return ParkingSpaceStatus.newBuilder()
+            .setId(event.space.id)
+            .setSpace(event.space)
+            .setStatus(SpaceStatus.VACANT)
+            .setLastUpdated(
+                Timestamp.newBuilder()
+                    .setSeconds(now.epochSecond)
+                    .setNanos(now.nano)
+                    .build()
+            )
+            .build()
+    }
+
     /**
      * Creates a ParkingSpaceStatus with OCCUPIED status for an ENTER event.
      */
     private fun createOccupiedStatus(event: ParkingEvent): ParkingSpaceStatus {
         val now = Instant.now()
-        
+
         return ParkingSpaceStatus.newBuilder()
             .setId(event.space.id)
             .setSpace(event.space)
             .setStatus(SpaceStatus.OCCUPIED)
             .setVehicle(event.vehicle)
-            .setLastUpdated(com.google.protobuf.Timestamp.newBuilder()
-                .setSeconds(now.epochSecond)
-                .setNanos(now.nano)
-                .build())
+            .setLastUpdated(
+                Timestamp.newBuilder()
+                    .setSeconds(now.epochSecond)
+                    .setNanos(now.nano)
+                    .build()
+            )
             .build()
     }
-} 
+
+}

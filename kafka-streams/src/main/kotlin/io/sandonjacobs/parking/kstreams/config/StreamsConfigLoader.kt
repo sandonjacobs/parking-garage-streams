@@ -27,15 +27,15 @@ object StreamsConfigLoader {
             put("sasl.mechanism", "PLAIN")
             put("sasl.jaas.config", """
                 org.apache.kafka.common.security.plain.PlainLoginModule required
-                username="${ccProperties.get("KAFKA_KEY_ID")}"
-                password="${ccProperties.get("KAFKA_KEY_SECRET")}"
+                username='${ccProperties.get("KAFKA_KEY_ID")}'
+                password='${ccProperties.get("KAFKA_KEY_SECRET")}';
             """.trimIndent())
             put("application.id", "parking-garage-kafka-streams")
             put("auto.offset.reset", "earliest")
             put("acks", "all")
             put("retries", "10")
 
-            put("default.key.serde", Serdes.String())
+            put("default.key.serde", Serdes.String()::class.java)
             put("default.value.serde", KafkaProtobufSerde::class.java)
 
             put("schema.registry.url", ccProperties.get("CC_SCHEMA_REGISTRY_URL"))

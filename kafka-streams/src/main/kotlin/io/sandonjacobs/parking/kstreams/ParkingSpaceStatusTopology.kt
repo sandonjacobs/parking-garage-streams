@@ -42,10 +42,12 @@ class ParkingSpaceStatusTopology(
         
         // Process ENTER events to create OCCUPIED status
         parkingEventsStream
+            .peek { _, event -> logger.debug("incoming parking event for space -> {}", event.space) }
             .filter { _, event ->
                 event.type == ParkingEventType.ENTER
             }
             .mapValues { _, event ->
+                logger.debug("space {} being marked as OCCUPIED", event.space)
                 createOccupiedStatus(event)
             }
             .to(

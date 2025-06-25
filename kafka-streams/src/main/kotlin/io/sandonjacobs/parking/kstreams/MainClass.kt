@@ -1,6 +1,7 @@
 package io.sandonjacobs.parking.kstreams
 
 import io.sandonjacobs.parking.kstreams.config.StreamsConfigLoader
+import io.sandonjacobs.parking.kstreams.serdes.SerdeProvider
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import org.apache.kafka.streams.KafkaStreams
@@ -43,24 +44,29 @@ fun main(args: Array<String>) {
                 throw IllegalArgumentException("Must specify either --cc-config or --kafka-config")
             }
         }
+
+        val serdeProvider = SerdeProvider(streamsProperties)
         
-//        // Build the topology
-//        val topology = ParkingSpaceStatusTopology().buildTopology()
-//        logger.info("Built topology: ${topology.describe()}")
-//
-//        // Create and start the Kafka Streams application
-//        val streams = KafkaStreams(topology, streamsProperties)
-//
-//        // Add shutdown hook for graceful shutdown
-//        Runtime.getRuntime().addShutdownHook(Thread {
-//            logger.info("Shutting down Kafka Streams application...")
-//            streams.close()
-//        })
-//
-//        // Start the streams application
-//        streams.start()
-//        logger.info("Kafka Streams application started successfully")
-//
+        // Build the topology
+        val topology = ParkingSpaceStatusTopology(
+            serdeProvider.parkingEventSerde(false),
+            serdeProvider.parkingSpaceStatusSerde(false))
+            .buildTopology()
+        logger.info("Built topology: ${topology.describe()}")
+
+        // Create and start the Kafka Streams application
+        val streams = KafkaStreams(topology, streamsProperties)
+
+        // Add shutdown hook for graceful shutdown
+        Runtime.getRuntime().addShutdownHook(Thread {
+            logger.info("Shutting down Kafka Streams application...")
+            streams.close()
+        })
+
+        // Start the streams application
+        streams.start()
+        logger.info("Kafka Streams application started successfully")
+
 //        // Keep the application running
 //        streams.close()
         

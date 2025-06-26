@@ -1,3 +1,7 @@
+output "ORG_ID" {
+  value = var.org_id
+}
+
 output "CC_ENV_DISPLAY_NAME" {
   value = confluent_environment.cc_env.display_name
 }
@@ -33,7 +37,6 @@ output "SCHEMA_REGISTRY_KEY_ID" {
 
 output "SCHEMA_REGISTRY_KEY_SECRET" {
   value = nonsensitive(confluent_api_key.env-manager-schema-registry-api-key.secret)
-  #  sensitive = false
 }
 
 output "KAFKA_KEY_ID" {
@@ -43,5 +46,20 @@ output "KAFKA_KEY_ID" {
 
 output "KAFKA_KEY_SECRET" {
   value = nonsensitive(confluent_api_key.app-manager-kafka-api-key.secret)
-  #  sensitive = false
+}
+
+output "FLINK_KEY_ID" {
+  value = confluent_api_key.env-manager-flink-api-key.id
+}
+
+output "FLINK_KEY_SECRET" {
+  value = nonsensitive(confluent_api_key.env-manager-flink-api-key.secret)
+}
+
+output "FLINK_ENV_ID" {
+  value = confluent_environment.cc_env.id
+}
+
+output "FLINK_COMPUTE_POOL_ID" {
+  value = confluent_flink_compute_pool.parking_streams_pool.id
 }

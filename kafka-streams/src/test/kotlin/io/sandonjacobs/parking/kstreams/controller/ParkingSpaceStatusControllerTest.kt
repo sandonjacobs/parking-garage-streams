@@ -2,7 +2,8 @@ package io.sandonjacobs.parking.kstreams.controller
 
 import io.sandonjacobs.parking.kstreams.ParkingSpaceStatusQueryService
 import io.sandonjacobs.parking.kstreams.TestConfig
-import io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus
+import io.sandonjacobs.streaming.parking.dto.ParkingSpaceStatusDto
+import io.sandonjacobs.streaming.parking.dto.SpaceStatusDto
 import io.sandonjacobs.streaming.parking.status.SpaceStatus
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -52,7 +53,7 @@ class ParkingSpaceStatusControllerTest {
     @Test
     fun `should return all parking spaces`() {
         // Given
-        val mockStatuses = listOf<ParkingSpaceStatus>()
+        val mockStatuses = listOf<io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus>()
         `when`(queryService.getAllParkingSpaceStatuses()).thenReturn(mockStatuses)
 
         // When & Then
@@ -64,7 +65,7 @@ class ParkingSpaceStatusControllerTest {
     @Test
     fun `should return occupied parking spaces`() {
         // Given
-        val mockOccupiedStatuses = listOf<ParkingSpaceStatus>()
+        val mockOccupiedStatuses = listOf<io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus>()
         `when`(queryService.getParkingSpaceStatusesByStatus(SpaceStatus.OCCUPIED)).thenReturn(mockOccupiedStatuses)
 
         // When & Then
@@ -76,7 +77,7 @@ class ParkingSpaceStatusControllerTest {
     @Test
     fun `should return vacant parking spaces`() {
         // Given
-        val mockVacantStatuses = listOf<ParkingSpaceStatus>()
+        val mockVacantStatuses = listOf<io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus>()
         `when`(queryService.getParkingSpaceStatusesByStatus(SpaceStatus.VACANT)).thenReturn(mockVacantStatuses)
 
         // When & Then

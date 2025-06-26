@@ -13,6 +13,8 @@ dependencies {
     implementation(libs.bundles.kotlinxEcosystem)
     // Add protobuf Java runtime
     implementation(libs.protobufJava)
+    // Add Jackson for JSON serialization support in DTOs
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
     testImplementation(kotlin("test"))
 }
 

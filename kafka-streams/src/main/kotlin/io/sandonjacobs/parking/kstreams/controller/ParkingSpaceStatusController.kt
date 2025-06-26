@@ -1,8 +1,11 @@
 package io.sandonjacobs.parking.kstreams.controller
 
-import io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus
-import io.sandonjacobs.streaming.parking.status.SpaceStatus
 import io.sandonjacobs.parking.kstreams.ParkingSpaceStatusQueryService
+import io.sandonjacobs.streaming.parking.dto.ParkingSpaceStatusDto
+import io.sandonjacobs.streaming.parking.dto.SpaceStatusDto
+import io.sandonjacobs.streaming.parking.dto.toDto
+import io.sandonjacobs.streaming.parking.dto.toDtoList
+import io.sandonjacobs.streaming.parking.status.SpaceStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -23,10 +26,10 @@ class ParkingSpaceStatusController(
      * @return The parking space status or 404 if not found
      */
     @GetMapping("/{spaceId}")
-    fun getParkingSpaceStatus(@PathVariable spaceId: String): ResponseEntity<ParkingSpaceStatus> {
+    fun getParkingSpaceStatus(@PathVariable spaceId: String): ResponseEntity<ParkingSpaceStatusDto> {
         val status = queryService.getParkingSpaceStatus(spaceId)
         return if (status != null) {
-            ResponseEntity.ok(status)
+            ResponseEntity.ok(status.toDto())
         } else {
             ResponseEntity.notFound().build()
         }
@@ -38,9 +41,9 @@ class ParkingSpaceStatusController(
      * @return List of all parking space statuses
      */
     @GetMapping
-    fun getAllParkingSpaceStatuses(): ResponseEntity<List<ParkingSpaceStatus>> {
+    fun getAllParkingSpaceStatuses(): ResponseEntity<List<ParkingSpaceStatusDto>> {
         val statuses = queryService.getAllParkingSpaceStatuses()
-        return ResponseEntity.ok(statuses)
+        return ResponseEntity.ok(statuses.toDtoList())
     }
 
     /**
@@ -50,7 +53,7 @@ class ParkingSpaceStatusController(
      * @return List of parking space statuses matching the filter
      */
     @GetMapping("/status/{status}")
-    fun getParkingSpaceStatusesByStatus(@PathVariable status: String): ResponseEntity<List<ParkingSpaceStatus>> {
+    fun getParkingSpaceStatusesByStatus(@PathVariable status: String): ResponseEntity<List<ParkingSpaceStatusDto>> {
         val spaceStatus = try {
             SpaceStatus.valueOf(status.uppercase())
         } catch (e: IllegalArgumentException) {
@@ -58,7 +61,7 @@ class ParkingSpaceStatusController(
         }
         
         val statuses = queryService.getParkingSpaceStatusesByStatus(spaceStatus)
-        return ResponseEntity.ok(statuses)
+        return ResponseEntity.ok(statuses.toDtoList())
     }
 
     /**
@@ -90,9 +93,9 @@ class ParkingSpaceStatusController(
      * @return List of occupied parking spaces
      */
     @GetMapping("/occupied")
-    fun getOccupiedParkingSpaces(): ResponseEntity<List<ParkingSpaceStatus>> {
+    fun getOccupiedParkingSpaces(): ResponseEntity<List<ParkingSpaceStatusDto>> {
         val occupied = queryService.getParkingSpaceStatusesByStatus(SpaceStatus.OCCUPIED)
-        return ResponseEntity.ok(occupied)
+        return ResponseEntity.ok(occupied.toDtoList())
     }
 
     /**
@@ -101,9 +104,9 @@ class ParkingSpaceStatusController(
      * @return List of vacant parking spaces
      */
     @GetMapping("/vacant")
-    fun getVacantParkingSpaces(): ResponseEntity<List<ParkingSpaceStatus>> {
+    fun getVacantParkingSpaces(): ResponseEntity<List<ParkingSpaceStatusDto>> {
         val vacant = queryService.getParkingSpaceStatusesByStatus(SpaceStatus.VACANT)
-        return ResponseEntity.ok(vacant)
+        return ResponseEntity.ok(vacant.toDtoList())
     }
 
     /**

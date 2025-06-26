@@ -25,5 +25,6 @@ plugins {
 include(":datagen")
 include(":utils")
 include(":kafka-streams")
+include(":flink-table-api")
 
 rootProject.name = "parking-garage-streams"

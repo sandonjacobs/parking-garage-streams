@@ -13,6 +13,8 @@ kafka = "3.9.1"
 confluent = "7.9.1"
 springBoot = "3.5.3"
 springDependencyManagement = "1.1.7"
+apacheFlink = "1.20.1"
+confluentFlinkTableAPI = "1.20-52"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -37,6 +39,9 @@ springBootStarterTest = { module = "org.springframework.boot:spring-boot-starter
 
 springKafka = { module = "org.springframework.kafka:spring-kafka" }
 
+# Flink Table API
+apacheFlinkTableAPI = { module = "org.apache.flink:flink-table-api-java", version.ref = "apacheFlink"}
+confluentFlinkTableAPI = { module = "io.confluent.flink:confluent-flink-table-api-java-plugin", version.ref = "confluentFlinkTableAPI"}
 
 # Libraries can be bundled together for easier import
 [bundles]

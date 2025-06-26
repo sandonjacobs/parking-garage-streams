@@ -1,11 +1,14 @@
 package io.sandonjacobs.parking.kstreams
 
-import io.sandonjacobs.parking.kstreams.config.StreamsConfigLoader
-import io.sandonjacobs.parking.kstreams.serdes.SerdeProvider
+import io.sandonjacobs.parking.kstreams.config.DefaultStreamsConfigLoader
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
-import org.apache.kafka.streams.KafkaStreams
 import org.slf4j.LoggerFactory
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.SpringBootApplication
+
+@SpringBootApplication
+class KafkaStreamsApplication
 
 fun main(args: Array<String>) {
     val logger = LoggerFactory.getLogger("MainClass")
@@ -27,48 +30,29 @@ fun main(args: Array<String>) {
     try {
         parser.parse(args)
         
-        // Load configuration based on provided option
-        val streamsProperties = when {
-            ccConfigFile != null && kafkaConfigFile != null -> {
-                throw IllegalArgumentException("Cannot specify both --cc-config and --kafka-config. Choose one.")
-            }
-            ccConfigFile != null -> {
-                logger.info("Loading Confluent Cloud configuration from: $ccConfigFile")
-                StreamsConfigLoader.loadConfluentCloudConfig(ccConfigFile!!)
-            }
-            kafkaConfigFile != null -> {
-                logger.info("Loading Kafka configuration from: $kafkaConfigFile")
-                StreamsConfigLoader.loadFromFile(kafkaConfigFile!!)
-            }
-            else -> {
-                throw IllegalArgumentException("Must specify either --cc-config or --kafka-config")
-            }
-        }
+//        // Load configuration based on provided option
+//        val streamsProperties = when {
+//            ccConfigFile != null && kafkaConfigFile != null -> {
+//                throw IllegalArgumentException("Cannot specify both --cc-config and --kafka-config. Choose one.")
+//            }
+//            ccConfigFile != null -> {
+//                logger.info("Loading Confluent Cloud configuration from: $ccConfigFile")
+//                DefaultStreamsConfigLoader.loadConfluentCloudConfig(ccConfigFile!!)
+//            }
+//            kafkaConfigFile != null -> {
+//                logger.info("Loading Kafka configuration from: $kafkaConfigFile")
+//                DefaultStreamsConfigLoader.loadFromFile(kafkaConfigFile!!)
+//            }
+//            else -> {
+//                throw IllegalArgumentException("Must specify either --cc-config or --kafka-config")
+//            }
+//        }
 
-        val serdeProvider = SerdeProvider(streamsProperties)
-        
-        // Build the topology
-        val topology = ParkingSpaceStatusTopology(
-            serdeProvider.parkingEventSerde(false),
-            serdeProvider.parkingSpaceStatusSerde(false))
-            .buildTopology()
-        logger.info("Built topology: ${topology.describe()}")
+        logger.info("Built topology configuration")
+        logger.info("Starting Spring Boot application...")
 
-        // Create and start the Kafka Streams application
-        val streams = KafkaStreams(topology, streamsProperties)
-
-        // Add shutdown hook for graceful shutdown
-        Runtime.getRuntime().addShutdownHook(Thread {
-            logger.info("Shutting down Kafka Streams application...")
-            streams.close()
-        })
-
-        // Start the streams application
-        streams.start()
-        logger.info("Kafka Streams application started successfully")
-
-//        // Keep the application running
-//        streams.close()
+        // Start Spring Boot application for REST API
+        SpringApplication.run(KafkaStreamsApplication::class.java, *args)
         
     } catch (e: Exception) {
         logger.error("Error: ${e.message}", e)

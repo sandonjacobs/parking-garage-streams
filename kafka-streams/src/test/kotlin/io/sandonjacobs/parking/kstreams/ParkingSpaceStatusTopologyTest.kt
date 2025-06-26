@@ -1,11 +1,11 @@
 package io.sandonjacobs.parking.kstreams
 
-import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde
 import io.sandonjacobs.streaming.parking.model.*
 import io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus
 import io.sandonjacobs.streaming.parking.status.SpaceStatus
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
@@ -14,28 +14,34 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ContextConfiguration
 import java.time.Instant
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 
+@SpringBootTest
+@ContextConfiguration(classes = [TestConfig::class])
 class ParkingSpaceStatusTopologyTest {
+    
+    @Autowired
+    private lateinit var topology: ParkingSpaceStatusTopology
+    
+    @Autowired
+    private lateinit var parkingEventSerde: Serde<ParkingEvent>
+    
+    @Autowired
+    private lateinit var parkingSpaceStatusSerde: Serde<ParkingSpaceStatus>
     
     private lateinit var testDriver: TopologyTestDriver
     private lateinit var inputTopic: TestInputTopic<String, ParkingEvent>
     private lateinit var outputTopic: TestOutputTopic<String, ParkingSpaceStatus>
-    private lateinit var topology: ParkingSpaceStatusTopology
     
     @BeforeEach
     fun setUp() {
-        // Create serdes with mock schema registry
-        val parkingEventSerde = createParkingEventSerde()
-        val parkingSpaceStatusSerde = createParkingSpaceStatusSerde()
-        
-        // Create topology with test serdes
-        topology = ParkingSpaceStatusTopology(parkingEventSerde, parkingSpaceStatusSerde)
-        
-        // Create test driver
-        testDriver = TopologyTestDriver(topology.buildTopology())
+        val builder = StreamsBuilder()
+        // Create test driver using the Spring-managed topology
+        testDriver = TopologyTestDriver(topology.buildTopology(builder))
         
         // Create test topics
         inputTopic = testDriver.createInputTopic(
@@ -147,7 +153,7 @@ class ParkingSpaceStatusTopologyTest {
         
         // Then
         val outputRecords = outputTopic.readRecordsToList()
-        assertEquals(2, outputRecords.size) // Only ENTER event should be processed
+        assertEquals(2, outputRecords.size)
 
         val outputValues = outputRecords.map { it.value }
         assertNotNull(outputValues.find { ps -> ps.id.equals(parkingSpace.id) && ps.status.equals(SpaceStatus.OCCUPIED) })
@@ -184,26 +190,5 @@ class ParkingSpaceStatusTopologyTest {
                 .setNanos(now.nano)
                 .build())
             .build()
-    }
-    
-    // Helper functions to create serdes with mock schema registry
-    private fun createParkingEventSerde(): Serde<ParkingEvent> {
-        val serde = KafkaProtobufSerde<ParkingEvent>()
-        val config = mapOf(
-            "schema.registry.url" to "mock://test",
-            "specific.protobuf.value.type" to "io.sandonjacobs.streaming.parking.model.ParkingEvent"
-        )
-        serde.configure(config, false)
-        return serde
-    }
-    
-    private fun createParkingSpaceStatusSerde(): Serde<ParkingSpaceStatus> {
-        val serde = KafkaProtobufSerde<ParkingSpaceStatus>()
-        val config = mapOf(
-            "schema.registry.url" to "mock://test",
-            "specific.protobuf.value.type" to "io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus"
-        )
-        serde.configure(config, false)
-        return serde
     }
 } 

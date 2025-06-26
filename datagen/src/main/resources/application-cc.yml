@@ -15,7 +15,7 @@ app:
 
 spring:
   application:
-    name: parking-garage-data-generator
+    name: parking-garage-datagen
   config:
     activate:
       on-profile: cc
@@ -26,7 +26,7 @@ spring:
     schema-registry:
       url: ${CC_SCHEMA_REGISTRY_URL}
     producer:
-      client-id: "parking-garage-app-cc"
+      client-id: "parking-garage-datagen-cc"
       compression-type: "zstd"
       key-serializer: "org.apache.kafka.common.serialization.StringSerializer"
       value-serializer: "io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer"

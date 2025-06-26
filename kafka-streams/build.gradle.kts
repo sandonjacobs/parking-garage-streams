@@ -4,6 +4,9 @@ plugins {
     id("buildsrc.convention.kotlin-jvm")
     // Apply Kotlin Serialization plugin from `gradle/libs.versions.toml`.
     alias(libs.plugins.kotlinPluginSerialization)
+    // Apply Spring Boot plugin from version catalog
+    alias(libs.plugins.springBoot)
+    alias(libs.plugins.springDependencyManagement)
 }
 
 dependencies {
@@ -24,6 +27,11 @@ dependencies {
     implementation(libs.confluentKafkaStreamsProtobuf)
     implementation(libs.confluentSchemaRegistryClient)
 
+    // Spring Boot dependencies for embedded REST API
+    implementation(libs.springBootStarterWeb)
+    implementation(libs.springBootStarterActuator)
+    implementation(libs.springKafka)
+
     // Project dependencies
     implementation(project(":utils"))
 
@@ -35,5 +43,6 @@ dependencies {
     // Test dependencies
     testImplementation(kotlin("test"))
     testImplementation(libs.kafkaStreamsTestUtils)
+    testImplementation(libs.springBootStarterTest)
 }
 

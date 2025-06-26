@@ -3,9 +3,9 @@ plugins {
     // The shared code is located in `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
     id("buildsrc.convention.kotlin-jvm")
 
-    // Apply Spring Boot plugin
-    id("org.springframework.boot") version "3.5.3"
-    id("io.spring.dependency-management") version "1.1.7"
+    // Apply Spring Boot plugin from version catalog
+    alias(libs.plugins.springBoot)
+    alias(libs.plugins.springDependencyManagement)
 }
 
 dependencies {
@@ -13,9 +13,9 @@ dependencies {
     implementation(project(":utils"))
     
     // Spring Boot dependencies
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation(libs.springBootStarter)
+    implementation(libs.springBootStarterWeb)
+    implementation(libs.springBootStarterActuator)
     
     // Spring Kafka for KafkaTemplate and producer functionality
     implementation("org.springframework.kafka:spring-kafka")
@@ -38,7 +38,7 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     
     // Test dependencies
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(libs.springBootStarterTest)
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.awaitility:awaitility:4.2.0")
 }

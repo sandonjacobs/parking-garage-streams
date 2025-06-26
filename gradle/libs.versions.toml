@@ -11,6 +11,8 @@ protobuf = "3.25.3"
 protobufGradlePlugin = "0.9.5"
 kafka = "3.9.1"
 confluent = "7.9.1"
+springBoot = "3.5.3"
+springDependencyManagement = "1.1.7"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -27,6 +29,14 @@ confluentKafkaStreamsProtobuf = { module = "io.confluent:kafka-streams-protobuf-
 confluentProtobuf = { module = "io.confluent:kafka-protobuf-serializer", version.ref = "confluent" }
 confluentSchemaRegistryClient = { module = "io.confluent:kafka-schema-registry-client", version.ref = "confluent" }
 
+# Spring Boot libraries
+springBootStarter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
+springBootStarterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+springBootStarterActuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
+springBootStarterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
+
+springKafka = { module = "org.springframework.kafka:spring-kafka" }
+
 
 # Libraries can be bundled together for easier import
 [bundles]
@@ -35,3 +45,5 @@ kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutine
 [plugins]
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufGradlePlugin" }
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+springDependencyManagement = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }

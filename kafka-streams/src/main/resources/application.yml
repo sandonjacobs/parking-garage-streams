@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: parking-garage-streams
+  kafka:
+    bootstrap-servers: localhost:9092
+    streams:
+      application-id: parking-garage-streams
+      properties:
+        auto.offset.reset: earliest
+        schema.registry.url: http://localhost:8081
+        # Add your actual schema registry URL here for production
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    io.sandonjacobs.parking.kstreams: DEBUG
+    org.apache.kafka.streams: INFO
+    org.springframework.web: INFO 

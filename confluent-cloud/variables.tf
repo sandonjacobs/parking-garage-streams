@@ -17,11 +17,11 @@ variable "org_id" {
 variable "cc_env_display_name" {
   type = string
   description = "Name of Confluent Cloud Environment to Manage"
-  default = "parking-garage-streams"
+  default = "parking_garage_streams"
 }
 
 variable "cc_kafka_cluster_name" {
   type = string
   description = "Name of Confluent Cloud Kafka Cluster to Manage"
-  default = "cluster-1"
+  default = "parking_stuff"
 }

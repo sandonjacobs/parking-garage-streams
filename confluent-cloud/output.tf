@@ -1,5 +1,5 @@
 output "ORG_ID" {
-  value = var.org_id
+  value = trim(var.org_id, "\"")
 }
 
 output "CC_ENV_DISPLAY_NAME" {
@@ -8,6 +8,14 @@ output "CC_ENV_DISPLAY_NAME" {
 
 output "CC_ENV_ID" {
   value = confluent_environment.cc_env.id
+}
+
+output "CLOUD_PROVIDER" {
+  value = var.cloud_provider
+}
+
+output "CLOUD_REGION" {
+  value = var.cloud_region
 }
 
 output "CC_KAFKA_CLUSTER_ID" {

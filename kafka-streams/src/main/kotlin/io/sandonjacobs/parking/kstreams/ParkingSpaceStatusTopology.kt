@@ -10,19 +10,14 @@ import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.Consumed
-import org.apache.kafka.streams.kstream.Materialized
 import org.apache.kafka.streams.kstream.Produced
-import org.apache.kafka.streams.state.Stores
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
 import java.time.Instant
 
 /**
  * Kafka Streams topology for processing parking events and maintaining parking space status.
  */
-@Component
-open class ParkingSpaceStatusTopology(
+class ParkingSpaceStatusTopology(
     private val parkingEventSerde: Serde<ParkingEvent>,
     private val parkingSpaceStatusSerde: Serde<ParkingSpaceStatus>
 ) {
@@ -32,13 +27,11 @@ open class ParkingSpaceStatusTopology(
     companion object {
         const val PARKING_EVENTS_TOPIC = "parking-events"
         const val PARKING_SPACE_STATUS_TOPIC = "parking-space-status"
-        const val PARKING_SPACE_STATUS_STORE = "parking-space-status-store"
     }
 
     /**
      * Builds the Kafka Streams topology.
      */
-    @Bean
     fun buildTopology(builder: StreamsBuilder): Topology {
 
         // Stream from parking-events topic
@@ -47,7 +40,7 @@ open class ParkingSpaceStatusTopology(
             Consumed.with(Serdes.String(), parkingEventSerde)
         )
 
-        // Process parking events and materialize to state store
+        // Process parking events
         parkingEventsStream
             .peek { _, event -> logger.debug("incoming parking event for space -> {}", event.space) }
             .mapValues { _, event ->
@@ -63,19 +56,12 @@ open class ParkingSpaceStatusTopology(
                 }
             }
             .peek { _, event -> logger.debug("vehicle on event {}", event?.vehicle)}
-            .toTable(
-                Materialized.`as`<String, ParkingSpaceStatus>(
-                    Stores.inMemoryKeyValueStore(PARKING_SPACE_STATUS_STORE)
-                ).withKeySerde(Serdes.String())
-                  .withValueSerde(parkingSpaceStatusSerde)
-            )
-            .toStream()
             .to(
                 PARKING_SPACE_STATUS_TOPIC,
                 Produced.with(Serdes.String(), parkingSpaceStatusSerde)
             )
 
-        logger.info("Built ParkingSpaceStatus topology with state store: {}", PARKING_SPACE_STATUS_STORE)
+        logger.info("Built ParkingSpaceStatus topology")
         return builder.build()
     }
 

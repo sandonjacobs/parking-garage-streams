@@ -5,6 +5,7 @@
 [versions]
 kotlin = "2.1.21"
 kotlinxDatetime = "0.6.2"
+kotlinxCli = "0.3.6"
 kotlinxSerializationJSON = "1.8.1"
 kotlinxCoroutines = "1.10.2"
 protobuf = "3.25.3"
@@ -15,9 +16,13 @@ springBoot = "3.5.3"
 springDependencyManagement = "1.1.7"
 apacheFlink = "1.20.1"
 confluentFlinkTableAPI = "1.20-52"
+slf4j = "2.0.17"
+logback = "1.5.18"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlinxCLI = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinxCli"}
+
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
@@ -27,6 +32,8 @@ kafkaStreams = { module = "org.apache.kafka:kafka-streams", version.ref = "kafka
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 kafkaStreamsTestUtils = { module = "org.apache.kafka:kafka-streams-test-utils", version.ref = "kafka" }
 
+slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 confluentKafkaStreamsProtobuf = { module = "io.confluent:kafka-streams-protobuf-serde", version.ref = "confluent" }
 confluentProtobuf = { module = "io.confluent:kafka-protobuf-serializer", version.ref = "confluent" }
 confluentSchemaRegistryClient = { module = "io.confluent:kafka-schema-registry-client", version.ref = "confluent" }

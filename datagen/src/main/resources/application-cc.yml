@@ -19,7 +19,7 @@ spring:
   config:
     activate:
       on-profile: cc
-    import: file:${user.home}/tools/parking-garage/cc.properties
+    import: file:${user.home}/tools/parking-garage/kafka-streams/cc.properties
 
   kafka:
     bootstrap-servers: ${CC_BROKER}
@@ -57,3 +57,10 @@ spring:
 #        protocol: "SASL_SSL"
 #      properties:
 #        "[specific.avro.reader]": true
+
+logging:
+  level:
+    root: warn
+    io.sandonjacobs.app: debug
+  pattern:
+    console: "%d %-5level %logger : %msg%n"

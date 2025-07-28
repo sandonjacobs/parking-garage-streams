@@ -56,18 +56,18 @@ GET /api/parking-spaces/health
 
 ### Start with Confluent Cloud configuration:
 ```bash
-./gradlew :kafka-streams:bootRun --args="--cc-config config/application-cc.yml"
+./gradlew :kstreams-parking-space-status:bootRun --args="--cc-config config/application-cc.yml"
 ```
 
 ### Start with generic Kafka configuration:
 ```bash
-./gradlew :kafka-streams:bootRun --args="--kafka-config config/kafka.properties"
+./gradlew :kstreams-parking-space-status:bootRun --args="--kafka-config config/kafka.properties"
 ```
 
 ### Build and run JAR:
 ```bash
-./gradlew :kafka-streams:build
-java -jar kafka-streams/build/libs/kafka-streams-*.jar --cc-config config/application-cc.yml
+./gradlew :kstreams-parking-space-status:build
+java -jar kstreams-parking-space-status/build/libs/kstreams-parking-space-status-*.jar --cc-config config/application-cc.yml
 ```
 
 ## State Store
@@ -89,7 +89,7 @@ The application materializes parking space statuses to a state store named `park
 
 ```bash
 # Build this module only
-./gradlew :kafka-streams:build
+./gradlew :kstreams-parking-space-status:build
 
 # Build all modules
 ./gradlew build

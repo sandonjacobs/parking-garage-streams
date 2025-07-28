@@ -19,7 +19,7 @@ spring:
   config:
     activate:
       on-profile: cc
-    import: file:${user.home}/tools/parking-garage/kafka-streams/cc.properties
+    import: file:${user.home}/tools/parking-garage/cc.properties
 
   kafka:
     bootstrap-servers: ${CC_BROKER}

@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
     logger.info("Starting Kafka Streams application...")
 
     // Parse command line arguments
-    val parser = ArgParser("kafka-streams")
+    val parser = ArgParser("kstreams-parking-space-status")
 
     val baseConfig by parser.option(ArgType.String,
         shortName = "b",

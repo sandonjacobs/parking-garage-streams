@@ -40,7 +40,7 @@ dependencies {
 
 //// Configure the shadow JAR task
 //tasks.shadowJar {
-//    archiveBaseName.set("kafka-streams")
+//    archiveBaseName.set("kstreams-parking-space-status")
 //    archiveClassifier.set("")
 //    archiveVersion.set("")
 //    manifest {

@@ -98,9 +98,6 @@ class KafkaConfigLoader {
 
             properties.put("auto.register.schemas", "true")
 
-
-//            properties.put("ssl.endpoint.identification.algorithm", "https")
-            
             return properties
         } else {
             logger.debug("Using base configuration: {}", base)

@@ -99,10 +99,10 @@ class KafkaConfigLoaderTest {
         val cloudProperties = Properties().apply {
             setProperty(KafkaConfigLoader.CC_BROKER, "pkc-abcde.us-west-2.aws.confluent.cloud:9092")
             setProperty(KafkaConfigLoader.CC_SCHEMA_REGISTRY_URL, "https://psrc-abcde.us-west-2.aws.confluent.cloud")
-            setProperty("KAFKA_KEY_ID", "KAFKA_KEY_ID")
-            setProperty("KAFKA_KEY_SECRET", "KAFKA_KEY_SECRET")
-            setProperty("SCHEMA_REGISTRY_KEY_ID", "SCHEMA_REGISTRY_KEY_ID")
-            setProperty("SCHEMA_REGISTRY_KEY_SECRET", "SCHEMA_REGISTRY_KEY_SECRET")
+            setProperty(KafkaConfigLoader.KAFKA_KEY_ID, "KAFKA_KEY_ID")
+            setProperty(KafkaConfigLoader.KAFKA_KEY_SECRET, "KAFKA_KEY_SECRET")
+            setProperty(KafkaConfigLoader.SCHEMA_REGISTRY_KEY_ID, "SCHEMA_REGISTRY_KEY_ID")
+            setProperty(KafkaConfigLoader.SCHEMA_REGISTRY_KEY_SECRET, "SCHEMA_REGISTRY_KEY_SECRET")
         }
         
         // When

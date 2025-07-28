@@ -47,11 +47,11 @@ class ParkingSpaceStatusTopology(
                 when (event.type) {
                     ParkingEventType.ENTER -> {
                         logger.debug("space {} being marked as OCCUPIED", event.space)
-                        createOccupiedStatus(event)
+                        event.mkStatus(SpaceStatus.OCCUPIED)
                     }
                     else -> {
                         logger.debug("space {} being marked as VACANT due to event type {}", event.space, event.type)
-                        createVacantStatus(event)
+                        event.mkStatus(SpaceStatus.VACANT)
                     }
                 }
             }
@@ -65,40 +65,26 @@ class ParkingSpaceStatusTopology(
         return builder.build()
     }
 
-    private fun createVacantStatus(event: ParkingEvent): ParkingSpaceStatus? {
+    fun ParkingEvent.mkStatus(status: SpaceStatus): ParkingSpaceStatus {
         val now = Instant.now()
 
         return ParkingSpaceStatus.newBuilder()
-            .setId(event.space.id)
-            .setSpace(event.space)
-            .setStatus(SpaceStatus.VACANT)
+            .setId(this.space.id)
+            .setSpace(this.space)
+            .setStatus(status)
             .setLastUpdated(
                 Timestamp.newBuilder()
                     .setSeconds(now.epochSecond)
                     .setNanos(now.nano)
                     .build()
             )
+            .apply {
+                if (status == SpaceStatus.OCCUPIED) {
+                    setVehicle(this@mkStatus.vehicle)
+                }
+            }
             .build()
-    }
 
-    /**
-     * Creates a ParkingSpaceStatus with OCCUPIED status for an ENTER event.
-     */
-    private fun createOccupiedStatus(event: ParkingEvent): ParkingSpaceStatus {
-        val now = Instant.now()
-
-        return ParkingSpaceStatus.newBuilder()
-            .setId(event.space.id)
-            .setSpace(event.space)
-            .setStatus(SpaceStatus.OCCUPIED)
-            .setVehicle(event.vehicle)
-            .setLastUpdated(
-                Timestamp.newBuilder()
-                    .setSeconds(now.epochSecond)
-                    .setNanos(now.nano)
-                    .build()
-            )
-            .build()
     }
 
 }

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package io.sandonjacobs.streaming.parking.model;
+
+option java_package = "io.sandonjacobs.streaming.parking.status";
+option java_multiple_files = true;
+
+import "parking-garage.proto";
+import "vehicle.proto";
+
+message ParkingGarageRowStatus {
+  string id = 1;
+  RowStatus defaultStatus = 2;
+  RowStatus handicapStatus = 3;
+  RowStatus motorcycleStatus = 4;
+}
+
+message RowStatus {
+  VehicleType vehicleType = 1;
+  int32 capacity = 2;
+  int32 occupied = 3;
+}

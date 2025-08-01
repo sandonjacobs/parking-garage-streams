@@ -24,7 +24,11 @@ plugins {
 // Learn more about structuring projects with Gradle - https://docs.gradle.org/8.7/userguide/multi_project_builds.html
 include(":datagen")
 include(":utils")
-include(":kstreams-parking-space-status")
-include(":flink-table-api")
+include(":kafka-streams")
+include(":kafka-streams:kstreams-utils")
+include(":kafka-streams:parking-space-status")
+include(":kafka-streams:row-aggregates")
+
+//include(":flink-table-api")
 
 rootProject.name = "parking-garage-streams"

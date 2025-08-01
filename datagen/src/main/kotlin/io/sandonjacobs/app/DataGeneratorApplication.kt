@@ -61,7 +61,7 @@ open class DataGeneratorApplication {
             // Start generating events for all garages
             println("\n🚀 Starting event generation and sending to Kafka...")
             garages.forEach { garage ->
-                eventGenerator.startGeneratingEvents(garage, eventsPerMinute = 5)
+                eventGenerator.startGeneratingEvents(garage, eventsPerMinute = 20)
                 println("   📡 Started event generation for garage: ${garage.id}")
             }
             

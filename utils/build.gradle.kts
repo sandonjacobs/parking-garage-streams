@@ -11,6 +11,10 @@ plugins {
 dependencies {
     // Apply the kotlinx bundle of dependencies from the version catalog (`gradle/libs.versions.toml`).
     implementation(libs.bundles.kotlinxEcosystem)
+
+    // Command line argument parsing
+    implementation(libs.kotlinxCLI)
+
     // Add protobuf Java runtime
     implementation(libs.protobufJava)
     // Add Jackson for JSON serialization support in DTOs

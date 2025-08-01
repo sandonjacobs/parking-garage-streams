@@ -1,0 +1,28 @@
+plugins {
+    // Create a fat JAR with all dependencies
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+}
+
+dependencies {
+    // Command line argument parsing
+    implementation(libs.kotlinxCLI)
+    implementation(project(":kafka-streams:kstreams-utils"))
+    // All common dependencies are managed by the parent module
+}
+
+// Configure the shadow JAR task
+tasks.shadowJar {
+    archiveBaseName.set("parking-space-status")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    manifest {
+        attributes(mapOf(
+            "Main-Class" to "io.sandonjacobs.parking.kstreams.MainClassKt"
+        ))
+    }
+}
+
+// Make the build task depend on the shadowJar task
+tasks.build {
+    dependsOn(tasks.shadowJar)
+}

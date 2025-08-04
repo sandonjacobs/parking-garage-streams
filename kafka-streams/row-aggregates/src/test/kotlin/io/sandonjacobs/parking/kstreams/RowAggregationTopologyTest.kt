@@ -5,9 +5,11 @@ import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.sandonjacobs.parking.kstreams.faker.GarageFaker
 import io.sandonjacobs.parking.kstreams.serde.SerdeProvider
 import io.sandonjacobs.streaming.parking.model.ParkingGarage
+import io.sandonjacobs.streaming.parking.model.Vehicle
 import io.sandonjacobs.streaming.parking.model.VehicleType
 import io.sandonjacobs.streaming.parking.status.ParkingGarageRowStatus
 import io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus
+import io.sandonjacobs.streaming.parking.status.RowStatus
 import io.sandonjacobs.streaming.parking.status.SpaceStatus
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
@@ -16,7 +18,7 @@ import org.apache.kafka.streams.TestInputTopic
 import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import kotlin.test.assertEquals
@@ -39,7 +41,7 @@ class RowAggregationTopologyTest {
     private lateinit var testGarage: ParkingGarage
 
     // These values match the hardcoded values in RowAggregationTopology.updateRowStatusWithDefaults
-    private val defaultRowCapacity = 20
+    private val carRowCapacity = 20
     private val handicapRowCapacity = 4
     private val motorcycleRowCapacity = 1
 
@@ -54,7 +56,7 @@ class RowAggregationTopologyTest {
         // Initialize the faker
         garageFaker = GarageFaker()
         testGarage = garageFaker.createMockGarage("g001", 2, 1,
-            defaultRowCapacity, handicapRowCapacity, motorcycleRowCapacity)
+            carRowCapacity, handicapRowCapacity, motorcycleRowCapacity)
 
         topology = RowAggregationTopology(parkingSpaceStatusSerde, garageSerde, rowAggregateSerde)
         val builder = StreamsBuilder()
@@ -103,6 +105,7 @@ class RowAggregationTopologyTest {
             .flatMap { it.parkingRowsList }
             .flatMap { it.parkingSpacesList }
             .first { it.type == vehicleType }
+
     
         // Create a space status update for the space
         val spaceStatus = ParkingSpaceStatus.newBuilder()
@@ -133,8 +136,8 @@ class RowAggregationTopologyTest {
         assert(rowStatus.id == rowId) { "Expected row status ID to be $rowId but was ${rowStatus.id}" }
     
         // Verify the capacities on the output match that of the garage/zone/row that was joined.
-        assertEquals(defaultRowCapacity, rowStatus.defaultStatus.capacity,
-            "Expected default capacity to be $defaultRowCapacity but was ${rowStatus.defaultStatus.capacity}")
+        assertEquals(carRowCapacity, rowStatus.carStatus.capacity,
+            "Expected default capacity to be $carRowCapacity but was ${rowStatus.carStatus.capacity}")
         assertEquals(handicapRowCapacity, rowStatus.handicapStatus.capacity,
             "Expected handicap capacity to be $handicapRowCapacity but was ${rowStatus.handicapStatus.capacity}")
         assertEquals(motorcycleRowCapacity, rowStatus.motorcycleStatus.capacity,
@@ -142,12 +145,12 @@ class RowAggregationTopologyTest {
     
         // Verify the occupied count is 1 for the type of the space we updated
         // and 0 for the other types
-        val expectedDefaultOccupied = if (vehicleType == VehicleType.DEFAULT) 1 else 0
+        val expectedDefaultOccupied = if (vehicleType == VehicleType.CAR) 1 else 0
         val expectedHandicapOccupied = if (vehicleType == VehicleType.HANDICAP) 1 else 0
         val expectedMotorcycleOccupied = if (vehicleType == VehicleType.MOTORCYCLE) 1 else 0
         
-        assert(rowStatus.defaultStatus.occupied == expectedDefaultOccupied) { 
-            "Expected default occupied to be $expectedDefaultOccupied but was ${rowStatus.defaultStatus.occupied}" 
+        assert(rowStatus.carStatus.occupied == expectedDefaultOccupied) { 
+            "Expected default occupied to be $expectedDefaultOccupied but was ${rowStatus.carStatus.occupied}" 
         }
         assert(rowStatus.handicapStatus.occupied == expectedHandicapOccupied) { 
             "Expected handicap occupied to be $expectedHandicapOccupied but was ${rowStatus.handicapStatus.occupied}" 
@@ -157,11 +160,10 @@ class RowAggregationTopologyTest {
         }
     
         // Now change the space back to VACANT
-        val vacantSpaceStatus = ParkingSpaceStatus.newBuilder()
-            .setId(space.id)
+        val vacantSpaceStatus = ParkingSpaceStatus.newBuilder(spaceStatus)
             .setStatus(SpaceStatus.VACANT)
-            .setSpace(space)
             .setLastUpdated(Timestamp.newBuilder().build())
+            .setVehicle(Vehicle.getDefaultInstance())
             .build()
     
         // Send the space status update to the topic
@@ -180,8 +182,8 @@ class RowAggregationTopologyTest {
         val vacantRowStatus = vacantLastRecord.value
     
         // Verify the occupied count is back to 0 for the type of the space we updated
-        assert(vacantRowStatus.defaultStatus.occupied == 0) { 
-            "Expected default occupied to be 0 but was ${vacantRowStatus.defaultStatus.occupied}" 
+        assert(vacantRowStatus.carStatus.occupied == 0) { 
+            "Expected default occupied to be 0 but was ${vacantRowStatus.carStatus.occupied}" 
         }
         assert(vacantRowStatus.handicapStatus.occupied == 0) { 
             "Expected handicap occupied to be 0 but was ${vacantRowStatus.handicapStatus.occupied}" 
@@ -191,4 +193,91 @@ class RowAggregationTopologyTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(VehicleType::class, names = ["UNRECOGNIZED"], mode = EnumSource.Mode.EXCLUDE)
+    fun `update row status for OCCUPIED status for any vehicle type`(vehicleType: VehicleType) {
+
+        val randomParkingSpace = testGarage.parkingZonesList.random().parkingRowsList.random().parkingSpacesList.first { it.type == vehicleType }
+        val currentRowStatus = ParkingGarageRowStatus.newBuilder()
+            .setId(randomParkingSpace.rowId)
+            .setCarStatus(RowStatus.newBuilder()
+                .setCapacity(5)
+                .setOccupied(1)
+                .setVehicleType(VehicleType.CAR)
+                .build())
+            .setHandicapStatus(RowStatus.newBuilder()
+                .setCapacity(1)
+                .setOccupied(0)
+                .setVehicleType(VehicleType.HANDICAP)
+                .build())
+            .setMotorcycleStatus(RowStatus.newBuilder()
+                .setCapacity(1)
+                .setOccupied(1)
+                .setVehicleType(VehicleType.MOTORCYCLE)
+                .build())
+            .build()
+
+        val spaceStatus = ParkingSpaceStatus.newBuilder()
+            .setId(randomParkingSpace.id)
+            .setStatus(SpaceStatus.OCCUPIED) // Change to OCCUPIED
+            .setSpace(randomParkingSpace)
+            .setLastUpdated(Timestamp.newBuilder().build())
+            .build()
+
+        val result = topology.updateRowStatus(spaceStatus, currentRowStatus, testGarage)
+        assertNotNull(result)
+
+        // Verify the capacities on the output match that of the garage/zone/row that was joined.
+        assertEquals(carRowCapacity, result.carStatus.capacity,
+            "Expected default capacity to be $carRowCapacity but was ${result.carStatus.capacity}")
+        assertEquals(handicapRowCapacity, result.handicapStatus.capacity,
+            "Expected handicap capacity to be $handicapRowCapacity but was ${result.handicapStatus.capacity}")
+        assertEquals(motorcycleRowCapacity, result.motorcycleStatus.capacity,
+            "Expected motorcycle capacity to be $motorcycleRowCapacity but was ${result.motorcycleStatus.capacity}")
+
+    }
+
+    @ParameterizedTest
+    @EnumSource(VehicleType::class, names = ["UNRECOGNIZED"], mode = EnumSource.Mode.EXCLUDE)
+    fun `update row status for VACANT status for any vehicle type`(vehicleType: VehicleType) {
+
+        val randomParkingSpace = testGarage.parkingZonesList.random().parkingRowsList.random().parkingSpacesList.first { it.type == vehicleType }
+        val currentRowStatus = ParkingGarageRowStatus.newBuilder()
+            .setId(randomParkingSpace.rowId)
+            .setCarStatus(RowStatus.newBuilder()
+                .setCapacity(5)
+                .setOccupied(1)
+                .setVehicleType(VehicleType.CAR)
+                .build())
+            .setHandicapStatus(RowStatus.newBuilder()
+                .setCapacity(1)
+                .setOccupied(0)
+                .setVehicleType(VehicleType.HANDICAP)
+                .build())
+            .setMotorcycleStatus(RowStatus.newBuilder()
+                .setCapacity(1)
+                .setOccupied(1)
+                .setVehicleType(VehicleType.MOTORCYCLE)
+                .build())
+            .build()
+
+        val spaceStatus = ParkingSpaceStatus.newBuilder()
+            .setId(randomParkingSpace.id)
+            .setStatus(SpaceStatus.VACANT) // Change to OCCUPIED
+            .setSpace(randomParkingSpace)
+            .setLastUpdated(Timestamp.newBuilder().build())
+            .build()
+
+        val result = topology.updateRowStatus(spaceStatus, currentRowStatus, testGarage)
+        assertNotNull(result)
+
+        // Verify the capacities on the output match that of the garage/zone/row that was joined.
+        assertEquals(carRowCapacity, result.carStatus.capacity,
+            "Expected default capacity to be $carRowCapacity but was ${result.carStatus.capacity}")
+        assertEquals(handicapRowCapacity, result.handicapStatus.capacity,
+            "Expected handicap capacity to be $handicapRowCapacity but was ${result.handicapStatus.capacity}")
+        assertEquals(motorcycleRowCapacity, result.motorcycleStatus.capacity,
+            "Expected motorcycle capacity to be $motorcycleRowCapacity but was ${result.motorcycleStatus.capacity}")
+
+    }
 }

@@ -62,7 +62,7 @@ class KafkaConfigLoader {
     }
 
 
-    fun setupCloudStreamsConfig(base: Properties, cloud: Properties? = null): Properties {
+    fun setupCloudStreamsConfig(applicationId: String, base: Properties, cloud: Properties? = null): Properties {
         if (cloud != null && cloud.isNotEmpty()) {
             logger.trace("Applying overrides from cloud configuration: {}", cloud)
             val properties = Properties()
@@ -100,10 +100,16 @@ class KafkaConfigLoader {
 
             properties.put("auto.register.schemas", "true")
 
+            properties.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId)
             return properties
         } else {
             logger.debug("Using base configuration: {}", base)
-            return base
+
+            val properties = Properties()
+            properties.putAll(base)
+            properties.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId)
+
+            return properties
         }
     }
 

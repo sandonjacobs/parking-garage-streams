@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console appender for development -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Kafka Streams specific logging -->
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.apache.kafka.streams" level="WARN"/>
+    <logger name="org.apache.kafka.clients" level="WARN"/>
+    
+    <!-- Application specific logging -->
+    <logger name="io.sandonjacobs.parking.kstreams" level="TRACE"/>
+    
+    <!-- Reduce noise from other libraries -->
+    <logger name="org.apache.kafka.common.utils.AppInfoParser" level="WARN"/>
+    <logger name="org.apache.kafka.common.metrics" level="WARN"/>
+    <logger name="org.apache.kafka.common.network" level="WARN"/>
+
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

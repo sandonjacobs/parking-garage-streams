@@ -91,7 +91,6 @@ class KafkaConfigLoaderTest {
     fun `setupCloudStreamsConfig should apply cloud properties to base properties`() {
         // Given
         val baseProperties = Properties().apply {
-            setProperty("application.id", "test-app")
             setProperty("bootstrap.servers", "localhost:9092")
             setProperty("schema.registry.url", "http://localhost:8081")
         }
@@ -104,10 +103,16 @@ class KafkaConfigLoaderTest {
             setProperty(KafkaConfigLoader.SCHEMA_REGISTRY_KEY_ID, "SCHEMA_REGISTRY_KEY_ID")
             setProperty(KafkaConfigLoader.SCHEMA_REGISTRY_KEY_SECRET, "SCHEMA_REGISTRY_KEY_SECRET")
         }
-        
+
         // When
-        val result = kafkaConfigLoader.setupCloudStreamsConfig(baseProperties, cloudProperties)
-        
+        val result = kafkaConfigLoader.setupCloudStreamsConfig("test-app", baseProperties, cloudProperties)
+
+        val expected = Properties().apply {
+            putAll(baseProperties)
+            putAll(cloudProperties)
+            put(StreamsConfig.APPLICATION_ID_CONFIG, "test-app")
+        }
+
         // Then
         assertEquals("test-app", result.getProperty("application.id"))
         assertEquals("pkc-abcde.us-west-2.aws.confluent.cloud:9092", result.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
@@ -125,15 +130,18 @@ class KafkaConfigLoaderTest {
     fun `setupCloudStreamsConfig should return base properties when cloud properties are null`() {
         // Given
         val baseProperties = Properties().apply {
-            setProperty("application.id", "test-app")
             setProperty("bootstrap.servers", "localhost:9092")
             setProperty("schema.registry.url", "http://localhost:8081")
         }
         
         // When
-        val result = kafkaConfigLoader.setupCloudStreamsConfig(baseProperties, null)
-        
+        val result = kafkaConfigLoader.setupCloudStreamsConfig("test-app", baseProperties, null)
+
+        val expected = Properties().apply {
+            putAll(baseProperties)
+            put(StreamsConfig.APPLICATION_ID_CONFIG, "test-app")
+        }
         // Then
-        assertEquals(baseProperties, result)
+        assertEquals(expected, result)
     }
 }

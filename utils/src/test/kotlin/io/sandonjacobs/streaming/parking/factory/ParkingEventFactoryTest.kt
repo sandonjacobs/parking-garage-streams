@@ -1,4 +1,4 @@
-package io.sandonjacobs.streaming.parking.utils
+package io.sandonjacobs.streaming.parking.factory
 
 import io.sandonjacobs.streaming.parking.model.*
 import org.junit.jupiter.api.Test
@@ -16,7 +16,7 @@ class ParkingEventFactoryTest {
             .setId(spaceId)
             .setZoneId(zoneId)
             .setGarageId(garageId)
-            .setType(VehicleType.DEFAULT)
+            .setType(VehicleType.CAR)
             .build()
         
         val location = Location.newBuilder()
@@ -30,7 +30,7 @@ class ParkingEventFactoryTest {
         // Then
         assertEquals(ParkingEventType.ENTER, event.type)
         assertEquals(parkingSpace, event.space)
-        assertEquals(VehicleType.DEFAULT, event.vehicle.type)
+        assertEquals(VehicleType.CAR, event.vehicle.type)
         assertNotNull(event.vehicle.licensePlate)
         assertNotNull(event.vehicle.state)
         assertTrue(event.timestamp.seconds > 0)
@@ -46,7 +46,7 @@ class ParkingEventFactoryTest {
             .setId("test-vehicle")
             .setLicensePlate("ABC123")
             .setState("CA")
-            .setType(VehicleType.DEFAULT)
+            .setType(VehicleType.CAR)
             .build()
         
         val location = Location.newBuilder()
@@ -74,7 +74,7 @@ class ParkingEventFactoryTest {
             .setId("test-space")
             .setZoneId("test-zone")
             .setGarageId(garageId)
-            .setType(VehicleType.DEFAULT)
+            .setType(VehicleType.CAR)
             .build()
         
         // When - create multiple random events

@@ -38,7 +38,7 @@ fun main(args: Array<String>) {
     val kafkaConfig = kafkaConfigLoader.load(baseConfig)
     val cloudConfig = kafkaConfigLoader.load(ccConfigOverride)
 
-    val streamsConfig = kafkaConfigLoader.setupCloudStreamsConfig(kafkaConfig, cloudConfig)
+    val streamsConfig = kafkaConfigLoader.setupCloudStreamsConfig("kstreams-parking-space-status", kafkaConfig, cloudConfig)
 
     // Get schema registry URL from configuration
     val schemaRegistryUrl = streamsConfig.getProperty(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)

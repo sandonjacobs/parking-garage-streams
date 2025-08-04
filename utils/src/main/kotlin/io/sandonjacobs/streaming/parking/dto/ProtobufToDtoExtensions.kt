@@ -64,7 +64,7 @@ fun SpaceStatus.toDto(): SpaceStatusDto {
  */
 fun VehicleType.toDto(): VehicleTypeDto {
     return when (this) {
-        VehicleType.DEFAULT -> VehicleTypeDto.DEFAULT
+        VehicleType.CAR -> VehicleTypeDto.DEFAULT
         VehicleType.HANDICAP -> VehicleTypeDto.HANDICAP
         VehicleType.MOTORCYCLE -> VehicleTypeDto.MOTORCYCLE
         else -> throw IllegalArgumentException("Unknown VehicleType: $this")

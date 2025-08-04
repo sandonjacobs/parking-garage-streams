@@ -1,5 +1,6 @@
-package io.sandonjacobs.streaming.parking.utils
+package io.sandonjacobs.streaming.parking.factory
 
+import com.google.protobuf.Timestamp
 import io.sandonjacobs.streaming.parking.model.*
 import java.util.concurrent.atomic.AtomicLong
 
@@ -23,7 +24,8 @@ object ParkingEventFactory {
             .setType(ParkingEventType.ENTER)
             .setSpace(parkingSpace)
             .setVehicle(vehicle)
-            .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+            .setTimestamp(
+                Timestamp.newBuilder()
                 .setSeconds(System.currentTimeMillis() / 1000)
                 .setNanos(((System.currentTimeMillis() % 1000) * 1_000_000).toInt())
                 .build())
@@ -52,7 +54,8 @@ object ParkingEventFactory {
             .setType(ParkingEventType.EXIT)
             .setSpace(parkingSpace)
             .setVehicle(vehicle)
-            .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+            .setTimestamp(
+                Timestamp.newBuilder()
                 .setSeconds(System.currentTimeMillis() / 1000)
                 .setNanos(((System.currentTimeMillis() % 1000) * 1_000_000).toInt())
                 .build())

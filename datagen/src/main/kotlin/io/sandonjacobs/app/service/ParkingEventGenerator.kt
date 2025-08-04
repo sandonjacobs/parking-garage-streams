@@ -2,7 +2,7 @@ package io.sandonjacobs.app.service
 
 import io.sandonjacobs.app.kafka.ParkingEventProducer
 import io.sandonjacobs.streaming.parking.model.*
-import io.sandonjacobs.streaming.parking.utils.ParkingEventFactory
+import io.sandonjacobs.streaming.parking.factory.ParkingEventFactory
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

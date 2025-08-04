@@ -55,19 +55,3 @@ output "KAFKA_KEY_ID" {
 output "KAFKA_KEY_SECRET" {
   value = nonsensitive(confluent_api_key.app-manager-kafka-api-key.secret)
 }
-
-output "FLINK_KEY_ID" {
-  value = confluent_api_key.env-manager-flink-api-key.id
-}
-
-output "FLINK_KEY_SECRET" {
-  value = nonsensitive(confluent_api_key.env-manager-flink-api-key.secret)
-}
-
-output "FLINK_ENV_ID" {
-  value = confluent_environment.cc_env.id
-}
-
-output "FLINK_COMPUTE_POOL_ID" {
-  value = confluent_flink_compute_pool.parking_streams_pool.id
-}

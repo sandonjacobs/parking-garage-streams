@@ -1,118 +1,272 @@
-# Parking Garage Data Generator with Kafka Producer
+# Parking Garage Data Generator
 
-This application generates realistic parking garage events and sends them to Apache Kafka using Confluent's Protobuf serializer.
+This module provides a data generation application for simulating parking events in a multi-level parking garage environment. It generates realistic parking events (vehicle entries and exits) and sends them to Apache Kafka for processing by stream processing applications.
 
-## Features
+## Overview
 
-- **Kafka Producer**: Uses `KafkaTemplate<String, ParkingEvent>` to send messages
-- **Protobuf Serialization**: Confluent Protobuf serializer for efficient message serialization
-- **Real-time Event Generation**: Generates parking events with realistic timing patterns
-- **REST API**: Control event generation via HTTP endpoints
-- **Spring Boot Integration**: Full Spring Boot application with auto-configuration
+The datagen module is a Spring Boot application that:
+
+- Loads parking garage configurations from YAML files
+- Creates realistic parking garage structures with zones, rows, and spaces
+- Generates random parking events (vehicle entries and exits) with realistic timing patterns
+- Sends both garage information and parking events to Kafka topics
+- Provides a REST API for controlling event generation and accessing garage information
+- Supports both local development and Confluent Cloud deployment
+
+The application simulates realistic traffic patterns by adjusting the event generation rate based on the time of day (higher during rush hours, lower during off-peak hours).
+
+## Application Structure
+
+### Key Components
+
+- **DataGeneratorApplication**: Main application class that initializes the application and starts event generation
+- **ParkingGarageService**: Creates and manages parking garage structures based on configuration
+- **ParkingEventGenerator**: Generates parking events with realistic timing patterns
+- **ParkingEventProducer**: Sends parking events to Kafka
+- **ParkingGarageProducer**: Sends parking garage information to Kafka
+- **REST Controllers**:
+  - **DataGeneratorController**: Provides endpoints for accessing garage information
+  - **ParkingEventController**: Provides endpoints for controlling event generation
+
+### Data Flow
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│  Configuration  │────▶│  ParkingGarage  │────▶│  parking-garage │
+│  (YAML files)   │     │     Service     │     │     (topic)     │
+│                 │     │                 │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                │
+                                ▼
+                        ┌─────────────────┐     ┌─────────────────┐
+                        │                 │     │                 │
+                        │ ParkingEvent    │────▶│  parking-events │
+                        │   Generator     │     │     (topic)     │
+                        │                 │     │                 │
+                        └─────────────────┘     └─────────────────┘
+                                │
+                                ▼
+                        ┌─────────────────┐
+                        │                 │
+                        │    REST API     │
+                        │                 │
+                        └─────────────────┘
+```
 
 ## Configuration
 
-### Kafka Settings
+### Application Configuration
 
-The application is configured to connect to:
-- **Bootstrap Servers**: `localhost:9092` (configurable via `spring.kafka.bootstrap-servers`)
-- **Schema Registry**: `http://localhost:8081` (configurable via `spring.kafka.schema-registry.url`)
-- **Topic**: `parking-events` (configurable via `app.kafka.topic.parking-events`)
+The application is configured using Spring Boot's configuration system:
 
-### Message Format
+- **application.yml**: Default configuration for local development
+- **application-cc.yml**: Configuration for Confluent Cloud deployment
+- **parking-garages.yml**: Parking garage definitions
 
-- **Key**: String (parking space ID)
-- **Value**: `ParkingEvent` protobuf message containing:
-  - Event type (ENTER/EXIT)
-  - Parking space details
-  - Vehicle information
-  - Timestamp
+#### Local Development Configuration (application.yml)
 
-## API Endpoints
+```yaml
+server:
+  port: 8080
 
-### Start Event Generation
+spring:
+  application:
+    name: parking-garage-data-generator
+  config:
+    import: classpath:parking-garages.yml
+  kafka:
+    bootstrap-servers: localhost:9092
+    schema-registry:
+      url: http://localhost:8081
 
-```bash
-# Start generation for all garages
-POST /api/parking-events/start?eventsPerMinute=10
-
-# Start generation for specific garage
-POST /api/parking-events/start/{garageId}?eventsPerMinute=5
+app:
+  kafka:
+    topic:
+      parking-garage: parking-garage
+      parking-events: parking-events
 ```
 
-### Stop Event Generation
+#### Confluent Cloud Configuration (application-cc.yml)
+
+For Confluent Cloud deployment, the application uses the `cc` profile which:
+
+1. Imports external configuration from `${user.home}/tools/parking-garage/cc.properties`
+2. Uses environment variables for sensitive information:
+   - `CC_BROKER`: Confluent Cloud broker URL
+   - `CC_SCHEMA_REGISTRY_URL`: Confluent Cloud Schema Registry URL
+   - `KAFKA_KEY_ID` and `KAFKA_KEY_SECRET`: Kafka API credentials
+   - `SCHEMA_REGISTRY_KEY_ID` and `SCHEMA_REGISTRY_KEY_SECRET`: Schema Registry credentials
+
+To run with Confluent Cloud configuration:
 
 ```bash
-# Stop generation for specific garage
-POST /api/parking-events/stop/{garageId}
+./gradlew :datagen:bootRun --args='--spring.profiles.active=cc'
+```
 
-# Stop all generators
+### Parking Garage Configuration
+
+Parking garages are configured in `parking-garages.yml` with a hierarchical structure:
+
+```yaml
+parking-garages:
+  garages:
+    - id: "garage-1"
+      name: "Downtown Parking Garage"
+      location:
+        latitude: "35.7796"
+        longitude: "-78.6382"
+        address: "123 Main Street"
+      zones:
+        - id: "ground-floor"
+          name: "Ground Floor"
+          spaces:
+            handicap: 8
+            motorcycle: 4
+            default: 88
+        - id: "level-1"
+          name: "Level 1"
+          rows:
+            - id: "row-a"
+              name: "Row A"
+              spaces:
+                handicap: 3
+                motorcycle: 2
+                default: 25
+```
+
+Each garage has:
+- A unique ID and name
+- Geographic location information
+- One or more zones (floors or sections)
+- Each zone has either spaces directly or rows of spaces
+- Spaces are categorized by type: handicap, motorcycle, and default (regular car)
+
+## REST API
+
+The application provides a REST API for controlling event generation and accessing garage information.
+
+### Garage Information Endpoints
+
+#### Get All Garages
+
+```
+GET /api/data-generator/garages
+```
+
+Returns a list of all configured parking garages with their structure.
+
+#### Get Garage by ID
+
+```
+GET /api/data-generator/garages/{garageId}
+```
+
+Returns a specific parking garage by ID.
+
+#### Get Garage Statistics
+
+```
+GET /api/data-generator/garages/{garageId}/statistics
+```
+
+Returns statistics about a specific parking garage, including counts of different types of spaces.
+
+#### Get All Garage Statistics
+
+```
+GET /api/data-generator/statistics
+```
+
+Returns aggregated statistics for all parking garages.
+
+### Event Generation Control Endpoints
+
+#### Stop Event Generation for a Garage
+
+```
+POST /api/parking-events/stop/{garageId}
+```
+
+Stops generating parking events for a specific garage.
+
+#### Stop All Event Generation
+
+```
 POST /api/parking-events/stop
 ```
 
-### Check Status
+Stops generating parking events for all garages.
+
+## Building and Running
+
+### Prerequisites
+
+- JDK 21
+- Apache Kafka (local or Confluent Cloud)
+- Confluent Schema Registry
+
+### Build
+
+To build the application:
 
 ```bash
-# Get status of all garages
-GET /api/parking-events/status
-
-# Get status of specific garage
-GET /api/parking-events/status/{garageId}
+./gradlew :datagen:build
 ```
 
-### Send Single Event
+### Run Locally
+
+To run the application with local Kafka:
 
 ```bash
-# Send a single event for testing
-POST /api/parking-events/send-single?garageId=garage-1&spaceId=space-1
+./gradlew :datagen:bootRun
 ```
 
-## Running the Application
+### Run with Confluent Cloud
 
-1. **Start Kafka and Schema Registry**:
-   ```bash
-   # Using Docker Compose or your preferred method
-   docker-compose up -d kafka schema-registry
-   ```
+To run with Confluent Cloud:
 
-2. **Run the Application**:
-   ```bash
-   ./gradlew :app:bootRun
-   ```
+```bash
+./gradlew :datagen:bootRun --args='--spring.profiles.active=cc'
+```
 
-3. **Verify Kafka Connection**:
-   The application will automatically start generating events and sending them to Kafka.
+Make sure to set the required environment variables:
+
+```bash
+export CC_BROKER=<confluent-cloud-broker-url>
+export CC_SCHEMA_REGISTRY_URL=<confluent-cloud-schema-registry-url>
+export KAFKA_KEY_ID=<kafka-api-key>
+export KAFKA_KEY_SECRET=<kafka-api-secret>
+export SCHEMA_REGISTRY_KEY_ID=<schema-registry-api-key>
+export SCHEMA_REGISTRY_KEY_SECRET=<schema-registry-api-secret>
+```
 
 ## Testing
 
-Run the integration tests with embedded Kafka:
+The module includes integration tests that verify the Kafka producer functionality:
 
 ```bash
-./gradlew :app:test
+./gradlew :datagen:test
 ```
 
-The tests verify:
-- Kafka producer configuration
-- Message serialization
-- Topic creation and message delivery
+The tests use Spring Kafka's test utilities to verify that:
+- Parking garage information is correctly sent to Kafka
+- Parking events are correctly generated and sent to Kafka
+
+## Integration with Other Modules
+
+This module:
+- Uses Protocol Buffer definitions from the **utils** module
+- Produces data consumed by the **kafka-streams** modules
+  - Garage information is consumed by the **row-aggregates** module
+  - Parking events are consumed by the **parking-space-status** module
 
 ## Dependencies
 
-- **Spring Kafka**: For KafkaTemplate and producer functionality
-- **Confluent Protobuf Serializer**: For Protobuf message serialization
-- **Confluent Schema Registry Client**: For schema management
-- **Spring Boot**: For application framework and auto-configuration
+The module has the following dependencies:
 
-## Message Flow
-
-1. **Event Generation**: `ParkingEventGenerator` creates realistic parking events
-2. **Kafka Production**: `KafkaParkingEventProducer` sends events to Kafka
-3. **Serialization**: Confluent Protobuf serializer handles message serialization
-4. **Delivery**: Messages are sent to the configured Kafka topic
-
-## Monitoring
-
-The application exposes Spring Boot Actuator endpoints for monitoring:
-- Health checks: `/actuator/health`
-- Metrics: `/actuator/metrics`
-- Application info: `/actuator/info` 
+- **Spring Boot**: Core framework and web server
+- **Spring Kafka**: For Kafka integration
+- **Confluent Schema Registry**: For Protocol Buffer serialization
+- **utils**: For Protocol Buffer definitions and factory classes
+- **Kotlin Coroutines**: For asynchronous event generation

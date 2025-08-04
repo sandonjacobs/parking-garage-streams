@@ -27,7 +27,7 @@ class GarageFaker(private val faker: Faker = Faker()) {
                 val rowBuilder = ParkingRow.newBuilder()
                 rowBuilder.setId(rowId)
                 rowBuilder.addAllParkingSpaces(mkParkingSpaces(
-                        VehicleType.DEFAULT,
+                        VehicleType.CAR,
                         "d",
                         defaultSpacesPerRow,
                         garageId,

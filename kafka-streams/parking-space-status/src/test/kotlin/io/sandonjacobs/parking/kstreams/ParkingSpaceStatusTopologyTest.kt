@@ -87,7 +87,7 @@ class ParkingSpaceStatusTopologyTest {
     fun `should process ENTER event and output OCCUPIED status`() {
         // Given
         val parkingSpace = createTestParkingSpace("space-1", "zone-1", "garage-1")
-        val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.DEFAULT)
+        val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.CAR)
         val enterEvent = createParkingEvent(ParkingEventType.ENTER, parkingSpace, vehicle)
 
         // When
@@ -112,7 +112,7 @@ class ParkingSpaceStatusTopologyTest {
     fun `process EXIT events`() {
         // Given
         val parkingSpace = createTestParkingSpace("space-1", "zone-1", "garage-1")
-        val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.DEFAULT)
+        val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.CAR)
         val exitEvent = createParkingEvent(ParkingEventType.EXIT, parkingSpace, vehicle)
 
         // When
@@ -132,7 +132,7 @@ class ParkingSpaceStatusTopologyTest {
         // Given
         val space1 = createTestParkingSpace("space-1", "zone-1", "garage-1")
         val space2 = createTestParkingSpace("space-2", "zone-1", "garage-1")
-        val vehicle1 = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.DEFAULT)
+        val vehicle1 = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.CAR)
         val vehicle2 = createTestVehicle("vehicle-2", "XYZ789", "NY", VehicleType.HANDICAP)
 
         val enterEvent1 = createParkingEvent(ParkingEventType.ENTER, space1, vehicle1)
@@ -163,7 +163,7 @@ class ParkingSpaceStatusTopologyTest {
     fun `should handle mixed ENTER and EXIT events correctly`() {
         // Given
         val parkingSpace = createTestParkingSpace("space-1", "zone-1", "garage-1")
-        val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.DEFAULT)
+        val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.CAR)
 
         val enterEvent = createParkingEvent(ParkingEventType.ENTER, parkingSpace, vehicle)
         val exitEvent = createParkingEvent(ParkingEventType.EXIT, parkingSpace, vehicle)
@@ -187,7 +187,7 @@ class ParkingSpaceStatusTopologyTest {
             .setId(id)
             .setZoneId(zoneId)
             .setGarageId(garageId)
-            .setType(VehicleType.DEFAULT)
+            .setType(VehicleType.CAR)
             .build()
     }
 

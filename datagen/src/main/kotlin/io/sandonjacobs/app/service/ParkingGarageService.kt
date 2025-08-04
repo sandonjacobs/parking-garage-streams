@@ -1,12 +1,43 @@
 package io.sandonjacobs.app.service
 
-import io.sandonjacobs.app.config.*
+import com.google.protobuf.Timestamp
+import io.sandonjacobs.app.config.ParkingGarageConfig
+import io.sandonjacobs.app.config.ParkingSpaceConfig
+import io.sandonjacobs.app.config.ParkingZoneConfig
+import io.sandonjacobs.app.kafka.ParkingEventProducer
+import io.sandonjacobs.app.kafka.ParkingGarageProducer
 import io.sandonjacobs.streaming.parking.model.*
-import io.sandonjacobs.streaming.parking.utils.ParkingGarageFactory
+import io.sandonjacobs.streaming.parking.factory.ParkingGarageFactory
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class ParkingGarageService {
+class ParkingGarageService(
+    private val parkingGarageProducer: ParkingGarageProducer,
+    private val parkingEventProducer: ParkingEventProducer) {
+
+    private val logger: Logger = LoggerFactory.getLogger(javaClass)
+
+    fun initGarageToKafka(parkingGarage: ParkingGarage) {
+        logger.debug("Sending Parking garage: {} to kafka", parkingGarage.id)
+        parkingGarageProducer.send(parkingGarage)
+    }
+
+    fun initEmptyGarageToKafka(garage: ParkingGarage) {
+        for (z in garage.parkingZonesList) {
+            for (r in z.parkingRowsList) {
+                for (s in r.parkingSpacesList) {
+                    val event = ParkingEvent.newBuilder()
+                        .setSpace(s)
+                        .setType(ParkingEventType.EXIT)
+                        .setTimestamp(Timestamp.newBuilder().build())
+                        .build()
+                    parkingEventProducer.sendParkingEvent(event)
+                }
+            }
+        }
+    }
 
     /**
      * Converts a ParkingGarageConfig to a ParkingGarage protobuf object.
@@ -115,7 +146,7 @@ class ParkingGarageService {
                                 .setId("space-${zoneConfig.id}-d-${spaceIndex + 1}")
                                 .setZoneId(zoneConfig.id)
                                 .setGarageId(garageId)
-                                .setType(VehicleType.DEFAULT)
+                                .setType(VehicleType.CAR)
                                 .setRowId(rowId)
                                 .build()
                         )
@@ -186,7 +217,7 @@ class ParkingGarageService {
                     .setId("space-${rowId ?: zoneId}-d-${index + 1}")
                     .setZoneId(zoneId)
                     .setGarageId(garageId)
-                    .setType(VehicleType.DEFAULT)
+                    .setType(VehicleType.CAR)
                     .apply { rowId?.let { setRowId(it) } }
                     .build()
             )

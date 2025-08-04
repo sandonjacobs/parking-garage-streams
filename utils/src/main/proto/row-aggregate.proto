@@ -10,9 +10,12 @@ import "vehicle.proto";
 
 message ParkingGarageRowStatus {
   string id = 1;
-  RowStatus defaultStatus = 2;
-  RowStatus handicapStatus = 3;
-  RowStatus motorcycleStatus = 4;
+  string garageId = 2;
+  string zoneId = 3;
+  string rowId = 4;
+  RowStatus carStatus = 5;
+  RowStatus handicapStatus = 6;
+  RowStatus motorcycleStatus = 7;
 }
 
 message RowStatus {

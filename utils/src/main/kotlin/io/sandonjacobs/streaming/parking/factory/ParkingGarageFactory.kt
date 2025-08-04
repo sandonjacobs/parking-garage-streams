@@ -1,4 +1,4 @@
-package io.sandonjacobs.streaming.parking.utils
+package io.sandonjacobs.streaming.parking.factory
 
 import io.sandonjacobs.streaming.parking.model.*
 
@@ -54,7 +54,7 @@ object ParkingGarageFactory {
 
         val parkingSpaces = createSpaces(zoneId, handicapCapacity, VehicleType.HANDICAP, "h", garageId) +
                            createSpaces(zoneId, motorcycleCapacity, VehicleType.MOTORCYCLE, "m", garageId) +
-                           createSpaces(zoneId, defaultCapacity, VehicleType.DEFAULT, "d", garageId)
+                           createSpaces(zoneId, defaultCapacity, VehicleType.CAR, "d", garageId)
 
         return ParkingZone.newBuilder()
             .setId(zoneId)
@@ -98,7 +98,7 @@ object ParkingGarageFactory {
             val rowId = "row-${zoneId}-${rowIndex + 1}"
             val parkingSpaces = createSpaces(zoneId, handicapCapacityPerRow, VehicleType.HANDICAP, "h", garageId, rowId) +
                                createSpaces(zoneId, motorcycleCapacityPerRow, VehicleType.MOTORCYCLE, "m", garageId, rowId) +
-                               createSpaces(zoneId, defaultCapacityPerRow, VehicleType.DEFAULT, "d", garageId, rowId)
+                               createSpaces(zoneId, defaultCapacityPerRow, VehicleType.CAR, "d", garageId, rowId)
 
             ParkingRow.newBuilder()
                 .setId(rowId)

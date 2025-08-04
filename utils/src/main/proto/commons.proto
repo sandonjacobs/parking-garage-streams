@@ -15,9 +15,8 @@ message Location {
 }
 
 enum ParkingEventType {
-    UNKNOWN = 0;
-    ENTER = 1;
-    EXIT = 2;
+    ENTER = 0;
+    EXIT = 1;
 }
 
 message ParkingEvent {

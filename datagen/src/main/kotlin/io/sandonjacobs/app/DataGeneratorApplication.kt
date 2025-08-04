@@ -1,6 +1,7 @@
 package io.sandonjacobs.app
 
 import io.sandonjacobs.app.config.ParkingGarageConfigurationLoader
+import io.sandonjacobs.app.kafka.ParkingEventProducer
 import io.sandonjacobs.app.service.ParkingEventGenerator
 import io.sandonjacobs.app.service.ParkingGarageService
 import org.springframework.boot.CommandLineRunner
@@ -15,7 +16,7 @@ open class DataGeneratorApplication {
     open fun startupRunner(
         parkingGarageService: ParkingGarageService,
         configLoader: ParkingGarageConfigurationLoader,
-        eventGenerator: ParkingEventGenerator
+        eventGenerator: ParkingEventGenerator, parkingEventProducer: ParkingEventProducer,
     ): CommandLineRunner {
         return CommandLineRunner { args ->
             println("🚗 Initializing Parking Garage Data Generator...")
@@ -36,7 +37,9 @@ open class DataGeneratorApplication {
                         totalRows++
                     }
                 }
-                
+
+                parkingGarageService.initGarageToKafka(garage)
+                parkingGarageService.initEmptyGarageToKafka(garage)
                 println("   📍 ${garage.id}: ${garage.parkingZonesList.size} zones, $totalRows rows, $totalSpaces spaces")
                 println("      Location: ${garage.location.latitude}, ${garage.location.longitude}")
             }

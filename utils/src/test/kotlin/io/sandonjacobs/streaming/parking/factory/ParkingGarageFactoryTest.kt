@@ -1,4 +1,4 @@
-package io.sandonjacobs.streaming.parking.utils
+package io.sandonjacobs.streaming.parking.factory
 
 import io.sandonjacobs.streaming.parking.model.*
 import kotlin.test.*
@@ -57,7 +57,7 @@ class ParkingGarageFactoryTest {
         
         val handicapSpaces = spaces.count { it.type == VehicleType.HANDICAP }
         val motorcycleSpaces = spaces.count { it.type == VehicleType.MOTORCYCLE }
-        val defaultSpaces = spaces.count { it.type == VehicleType.DEFAULT }
+        val defaultSpaces = spaces.count { it.type == VehicleType.CAR }
         
         assertEquals(10, handicapSpaces)
         assertEquals(5, motorcycleSpaces)
@@ -120,7 +120,7 @@ class ParkingGarageFactoryTest {
             val spaces = row.parkingSpacesList
             val handicapSpaces = spaces.count { it.type == VehicleType.HANDICAP }
             val motorcycleSpaces = spaces.count { it.type == VehicleType.MOTORCYCLE }
-            val defaultSpaces = spaces.count { it.type == VehicleType.DEFAULT }
+            val defaultSpaces = spaces.count { it.type == VehicleType.CAR }
             
             assertEquals(2, handicapSpaces)
             assertEquals(1, motorcycleSpaces)
@@ -173,8 +173,8 @@ class ParkingGarageFactoryTest {
         assertTrue(spaces.any { it.id == "space-zone-1-m-1" && it.type == VehicleType.MOTORCYCLE })
         
         // Check default space IDs
-        assertTrue(spaces.any { it.id == "space-zone-1-d-1" && it.type == VehicleType.DEFAULT })
-        assertTrue(spaces.any { it.id == "space-zone-1-d-7" && it.type == VehicleType.DEFAULT })
+        assertTrue(spaces.any { it.id == "space-zone-1-d-1" && it.type == VehicleType.CAR })
+        assertTrue(spaces.any { it.id == "space-zone-1-d-7" && it.type == VehicleType.CAR })
     }
 
     @Test
@@ -192,7 +192,7 @@ class ParkingGarageFactoryTest {
         
         val handicapSpaces = spaces.count { it.type == VehicleType.HANDICAP }
         val motorcycleSpaces = spaces.count { it.type == VehicleType.MOTORCYCLE }
-        val defaultSpaces = spaces.count { it.type == VehicleType.DEFAULT }
+        val defaultSpaces = spaces.count { it.type == VehicleType.CAR }
         
         assertEquals(0, handicapSpaces)
         assertEquals(0, motorcycleSpaces)

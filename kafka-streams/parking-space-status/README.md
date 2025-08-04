@@ -1,96 +1,169 @@
-# Kafka Streams Module
+# Parking Space Status Processor
 
-This module contains a Kafka Streams application for processing parking garage data streams with an embedded REST API for querying the materialized state store.
+This Kafka Streams application processes parking events and maintains a real-time view of parking space statuses in a parking garage.
 
 ## Overview
 
-The application processes parking events and maintains a materialized view of parking space statuses. It also provides a REST API for querying the current state of parking spaces in real-time.
+The parking-space-status module is a Kafka Streams application that:
 
-## Features
+- Consumes parking events (vehicle entry/exit) from a Kafka topic
+- Processes these events to track the status of each parking space
+- Maintains a materialized view of all parking spaces with their current status
+- Produces status updates to a dedicated Kafka topic
 
-- **Stream Processing**: Processes parking events and maintains state
-- **State Store**: Materializes parking space statuses for fast queries
-- **REST API**: Embedded HTTP endpoints for querying state
-- **Real-time Queries**: Direct access to the materialized state store
+## Data Flow
 
-## Architecture
-
-- **ParkingSpaceStatusTopology**: Kafka Streams topology that processes events
-- **ParkingSpaceStatusQueryService**: Service for querying the state store
-- **ParkingSpaceStatusController**: REST controller exposing HTTP endpoints
-- **MainClass**: Application entry point with Spring Boot integration
-
-## API Endpoints
-
-The application exposes REST endpoints on port 8080:
-
-### Get specific parking space status
 ```
-GET /api/parking-spaces/{spaceId}
+┌─────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│                 │     │                     │     │                     │
+│  parking-events │────▶│ ParkingSpaceStatus  │────▶│ parking-space-status│
+│     (topic)     │     │     Topology        │     │       (topic)       │
+│                 │     │                     │     │                     │
+└─────────────────┘     └─────────────────────┘     └─────────────────────┘
 ```
 
-### Get all parking space statuses
-```
-GET /api/parking-spaces
+### Input
+
+- **Topic**: `parking-events`
+- **Key**: String (parking space ID)
+- **Value**: `ParkingEvent` protobuf message containing:
+  - Event type (ENTER/EXIT)
+  - Parking space details
+  - Vehicle information
+  - Timestamp
+
+### Output
+
+- **Topic**: `parking-space-status`
+- **Key**: String (parking space ID)
+- **Value**: `ParkingSpaceStatus` protobuf message containing:
+  - Parking space details
+  - Current status (VACANT/OCCUPIED)
+  - Vehicle information (for occupied spaces)
+  - Last updated timestamp
+
+## Topology
+
+The Kafka Streams topology is defined in `ParkingSpaceStatusTopology.kt` and performs the following operations:
+
+1. **Stream**: Consumes events from the `parking-events` topic
+2. **Process**: Maps each event to a status update based on the event type:
+   - ENTER events → OCCUPIED status (with vehicle information)
+   - EXIT events → VACANT status (without vehicle information)
+3. **Produce**: Sends status updates to the `parking-space-status` topic
+
+## Implementation
+
+### Key Classes
+
+- **ParkingSpaceStatusTopology**: Defines the Kafka Streams topology for processing events
+- **MainClass**: Entry point that configures and starts the Kafka Streams application
+
+### Status Mapping Logic
+
+The application maps parking events to space statuses using the following logic:
+
+```kotlin
+when (event.type) {
+    ParkingEventType.ENTER -> {
+        // Mark space as OCCUPIED with vehicle information
+        event.mkStatus(SpaceStatus.OCCUPIED)
+    }
+    else -> {
+        // Mark space as VACANT without vehicle information
+        event.mkStatus(SpaceStatus.VACANT)
+    }
+}
 ```
 
-### Get parking spaces by status
-```
-GET /api/parking-spaces/status/{status}
-GET /api/parking-spaces/occupied
-GET /api/parking-spaces/vacant
+## Configuration
+
+The application can be configured using properties files and command-line arguments:
+
+### Command-Line Arguments
+
+- `-b, --base`: Path to base configuration file (default: `kafka-local.properties`)
+- `-c, --cloud`: Path to Confluent Cloud configuration override file (optional)
+
+### Configuration Files
+
+- **Local Development**: `src/main/resources/kafka-local.properties`
+- **Confluent Cloud**: External file specified with `-c` option
+
+### Example Configuration
+
+```properties
+# Local Kafka configuration
+bootstrap.servers=localhost:9092
+schema.registry.url=http://localhost:8081
+
+# Streams configuration
+application.id=kstreams-parking-space-status
+default.key.serde=org.apache.kafka.common.serialization.Serdes$StringSerde
+default.value.serde=io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde
 ```
 
-### Get counts and statistics
-```
-GET /api/parking-spaces/counts
-GET /api/parking-spaces/count
-```
+## Building and Running
 
-### Health check
-```
-GET /api/parking-spaces/health
-```
+### Build
 
-## Running the Application
+To build the application:
 
-### Start with Confluent Cloud configuration:
 ```bash
-./gradlew :kstreams-parking-space-status:bootRun --args="--cc-config config/application-cc.yml"
+./gradlew :kafka-streams:parking-space-status:build
 ```
 
-### Start with generic Kafka configuration:
+This creates a fat JAR with all dependencies included.
+
+### Run
+
+To run the application locally:
+
 ```bash
-./gradlew :kstreams-parking-space-status:bootRun --args="--kafka-config config/kafka.properties"
+java -jar kafka-streams/parking-space-status/build/libs/parking-space-status.jar
 ```
 
-### Build and run JAR:
+With custom configuration:
+
 ```bash
-./gradlew :kstreams-parking-space-status:build
-java -jar kstreams-parking-space-status/build/libs/kstreams-parking-space-status-*.jar --cc-config config/application-cc.yml
+java -jar kafka-streams/parking-space-status/build/libs/parking-space-status.jar \
+  --base /path/to/custom-config.properties
 ```
 
-## State Store
+With Confluent Cloud configuration:
 
-The application materializes parking space statuses to a state store named `parking-space-status-store`. This provides:
-- **Fast queries**: Sub-millisecond response times
-- **Real-time data**: Always up-to-date with the latest events
-- **Direct access**: No need to consume from output topics
+```bash
+java -jar kafka-streams/parking-space-status/build/libs/parking-space-status.jar \
+  --cloud /path/to/cc-config.properties
+```
+
+## Testing
+
+The application includes unit tests for the topology using Kafka Streams' `TopologyTestDriver`:
+
+```bash
+./gradlew :kafka-streams:parking-space-status:test
+```
+
+The tests verify:
+- Correct processing of ENTER events (space marked as OCCUPIED)
+- Correct processing of EXIT events (space marked as VACANT)
+- Proper inclusion of vehicle information for occupied spaces
 
 ## Dependencies
 
-- **Kafka Streams**: Core streaming functionality
-- **Spring Boot**: REST API framework
-- **Kotlin**: Programming language
-- **Protobuf**: Protocol buffer support
-- **Utils Module**: Shared utilities and data models
+The module has the following dependencies:
 
-## Building
+- **kstreams-utils**: Common utilities for Kafka Streams applications
+- **utils**: Protocol Buffer definitions and data models
+- **Kafka Streams**: Core Kafka Streams library
+- **Confluent Kafka Streams Protobuf Serde**: For Protocol Buffer serialization
+- **Kotlinx CLI**: For command-line argument parsing
 
-```bash
-# Build this module only
-./gradlew :kstreams-parking-space-status:build
+## Integration with Other Modules
 
-# Build all modules
-./gradlew build
-``` 
+This module:
+- Consumes events produced by the **datagen** module
+- Produces status updates consumed by the **row-aggregates** module
+- Uses common utilities from the **kstreams-utils** module
+- Uses Protocol Buffer definitions from the **utils** module

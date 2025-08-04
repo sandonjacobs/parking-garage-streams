@@ -1,6 +1,7 @@
-package io.sandonjacobs.streaming.parking.utils
+package io.sandonjacobs.streaming.parking.factory
 
 import io.sandonjacobs.streaming.parking.model.*
+import kotlin.collections.iterator
 
 /**
  * Factory class for creating Vehicle instances with realistic data.
@@ -16,7 +17,7 @@ object VehicleFactory {
     )
     
     private val vehicleTypeDistribution = mapOf(
-        VehicleType.DEFAULT to 0.85,      // 85% default vehicles
+        VehicleType.CAR to 0.85,      // 85% default vehicles
         VehicleType.HANDICAP to 0.09,     // 9% handicap vehicles
         VehicleType.MOTORCYCLE to 0.06    // 6% motorcycles
     )
@@ -66,7 +67,7 @@ object VehicleFactory {
             }
         }
         
-        return VehicleType.DEFAULT
+        return VehicleType.CAR
     }
     
     /**
@@ -86,7 +87,7 @@ object VehicleFactory {
                 val numbers = (10..99).random().toString()
                 "$letters$numbers"
             }
-            VehicleType.DEFAULT -> {
+            VehicleType.CAR -> {
                 // Standard format: 3 letters + 3 numbers
                 val letters = (1..3).map { ('A'..'Z').random() }.joinToString("")
                 val numbers = (100..999).random().toString()

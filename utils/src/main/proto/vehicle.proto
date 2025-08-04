@@ -14,7 +14,7 @@ message Vehicle {
 }
 
 enum VehicleType {
-  DEFAULT = 0;
+  CAR = 0;
   HANDICAP = 1;
   MOTORCYCLE = 2;
 }

@@ -35,7 +35,7 @@ class CapacityCalculatorTest {
         val result = CapacityCalculator.findCapacityOfRow(garage, randomParkingSpace)
 
         when (spaceVehicleType) {
-            VehicleType.DEFAULT -> assertEquals(defaultCapacity, result.defaultCapacity)
+            VehicleType.CAR -> assertEquals(defaultCapacity, result.carCapacity)
             VehicleType.HANDICAP -> assertEquals(handicapCapacity, result.handicapCapacity)
             VehicleType.MOTORCYCLE -> assertEquals(motorcycleCapacity, result.motorcycleCapacity)
             else -> throw IllegalStateException("Unknown vehicle type: $vehicleType")

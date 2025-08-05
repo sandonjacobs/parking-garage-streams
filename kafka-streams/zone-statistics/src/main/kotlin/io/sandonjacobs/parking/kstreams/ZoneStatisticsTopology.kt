@@ -3,10 +3,7 @@ package io.sandonjacobs.parking.kstreams
 import io.sandonjacobs.streaming.parking.calculator.CapacityCalculator
 import io.sandonjacobs.streaming.parking.model.ParkingGarage
 import io.sandonjacobs.streaming.parking.model.VehicleType
-import io.sandonjacobs.streaming.parking.status.ParkingGarageRowStatus
-import io.sandonjacobs.streaming.parking.status.ParkingSpaceStatus
-import io.sandonjacobs.streaming.parking.status.RowStatus
-import io.sandonjacobs.streaming.parking.status.SpaceStatus
+import io.sandonjacobs.streaming.parking.status.*
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
@@ -25,11 +22,11 @@ data class SpaceStatusWithGarage(
     val garage: ParkingGarage
 )
 
-class RowAggregationTopology(private val parkingSpaceStatusSerde: Serde<ParkingSpaceStatus>,
+class ZoneStatisticsTopology(private val parkingSpaceStatusSerde: Serde<ParkingSpaceStatus>,
                              private val garageSerde: Serde<ParkingGarage>,
-                             private val rowAggregateSerde: Serde<ParkingGarageRowStatus>) {
+                             private val zoneStatisticsSerde: Serde<ParkingGarageZoneStatus>) {
 
-    private val logger = LoggerFactory.getLogger(RowAggregationTopology::class.java)
+    private val logger = LoggerFactory.getLogger(ZoneStatisticsTopology::class.java)
     
     // Store the garage global table as a class member so we can access it in the aggregate function
     private lateinit var garageGlobalTable: GlobalKTable<String, ParkingGarage>
@@ -37,44 +34,43 @@ class RowAggregationTopology(private val parkingSpaceStatusSerde: Serde<ParkingS
     companion object {
         const val PARKING_SPACE_STATUS_TOPIC = "parking-space-status"
         const val PARKING_GARAGE_TOPIC = "parking-garage"
-        const val ROW_AGGREGATION_TOPIC = "parking-row-aggregates"
+        const val ZONE_STATISTICS_TOPIC = "parking-zone-aggregates"
     }
 
     /**
-     * Updates the row status based on a space status change
+     * Updates the zone status based on a space status change
      * 
      * @param spaceStatus The updated space status
-     * @param currentRowStatus The current row status
+     * @param currentZoneStatus The current zone status
      * @param garage The garage containing the space
-     * @return The updated row status
+     * @return The updated zone status
      */
-    fun updateRowStatus(
+    fun updateZoneStatus(
         spaceStatus: ParkingSpaceStatus,
-        currentRowStatus: ParkingGarageRowStatus,
+        currentZoneStatus: ParkingGarageZoneStatus,
         garage: ParkingGarage
-    ): ParkingGarageRowStatus {
+    ): ParkingGarageZoneStatus {
         val space = spaceStatus.space
         val vehicleType = space.type
-        val rowCapacities = CapacityCalculator.calculateRowCapacity(garage, space)
+        val zoneCapacities = CapacityCalculator.calculateZoneCapacity(garage, space)
         
-        // Create a builder from the current row status
-        val builder = ParkingGarageRowStatus.newBuilder(currentRowStatus)
+        // Create a builder from the current zone status
+        val builder = ParkingGarageZoneStatus.newBuilder(currentZoneStatus)
 
-        builder.setRowId(space.rowId)
         builder.setZoneId(space.zoneId)
         builder.setGarageId(space.garageId)
         
         // Update the capacity for each vehicle type
         val carStatusBuilder = builder.carStatusBuilder
-            .setCapacity(rowCapacities.carCapacity)
+            .setCapacity(zoneCapacities.carCapacity)
             .setVehicleType(VehicleType.CAR)
         
         val handicapStatusBuilder = builder.handicapStatusBuilder
-            .setCapacity(rowCapacities.handicapCapacity)
+            .setCapacity(zoneCapacities.handicapCapacity)
             .setVehicleType(VehicleType.HANDICAP)
         
         val motorcycleStatusBuilder = builder.motorcycleStatusBuilder
-            .setCapacity(rowCapacities.motorcycleCapacity)
+            .setCapacity(zoneCapacities.motorcycleCapacity)
             .setVehicleType(VehicleType.MOTORCYCLE)
         
         // Update the occupied count based on the space status and vehicle type
@@ -133,52 +129,50 @@ class RowAggregationTopology(private val parkingSpaceStatusSerde: Serde<ParkingS
         
         // Process each joined record
         joinedStream
-            // Create a key based on the row ID
+            // Create a key based on the zone ID
             .selectKey { _, joined -> 
-                "${joined.spaceStatus.space.garageId}-${joined.spaceStatus.space.zoneId}-${joined.spaceStatus.space.rowId}" 
+                "${joined.spaceStatus.space.garageId}-${joined.spaceStatus.space.zoneId}" 
             }
-            // Process each record to create or update the row status
+            // Process each record to create or update the zone status
             .mapValues { _, joined ->
                 val spaceStatus = joined.spaceStatus
                 val garage = joined.garage
                 logger.debug("joined garage id -> {}", garage.id)
 
-                val rowId = "${spaceStatus.space.garageId}-${spaceStatus.space.zoneId}-${spaceStatus.space.rowId}"
-                logger.debug("rowId = {}", rowId)
+                val zoneId = "${spaceStatus.space.garageId}-${spaceStatus.space.zoneId}"
+                logger.debug("zoneId = {}", zoneId)
 
-                // Create a new row status
-                val carStatus = RowStatus.newBuilder()
+                // Create a new zone status
+                val carStatus = ZoneStatus.newBuilder()
                     .setVehicleType(VehicleType.CAR)
                     .setCapacity(0)
                     .setOccupied(0)
                     .build()
                 
-                val handicapStatus = RowStatus.newBuilder()
+                val handicapStatus = ZoneStatus.newBuilder()
                     .setVehicleType(VehicleType.HANDICAP)
                     .setCapacity(0)
                     .setOccupied(0)
                     .build()
-                
-                val motorcycleStatus = RowStatus.newBuilder()
+
+                val motorcycleStatus = ZoneStatus.newBuilder()
                     .setVehicleType(VehicleType.MOTORCYCLE)
                     .setCapacity(0)
                     .setOccupied(0)
                     .build()
-                
-                val initialRowStatus = ParkingGarageRowStatus.newBuilder()
-                    .setId(rowId)
+
+                val initialZoneStatus = ParkingGarageZoneStatus.newBuilder()
+                    .setId(zoneId)
                     .setCarStatus(carStatus)
                     .setHandicapStatus(handicapStatus)
                     .setMotorcycleStatus(motorcycleStatus)
                     .build()
-                
-                // Update the row status with the space status
-                updateRowStatus(spaceStatus, initialRowStatus, garage)
+                // Update the zone status with the space status
+                updateZoneStatus(spaceStatus, initialZoneStatus, garage)
             }
-            // Output to the row aggregation topic
-            .to(ROW_AGGREGATION_TOPIC, Produced.with(Serdes.String(), rowAggregateSerde))
+            // Output to the zone statistics topic
+            .to(ZONE_STATISTICS_TOPIC, Produced.with(Serdes.String(), zoneStatisticsSerde))
         
         return builder.build()
     }
-
 }

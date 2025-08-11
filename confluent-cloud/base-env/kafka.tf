@@ -5,7 +5,7 @@ resource "confluent_kafka_cluster" "kafka_cluster" {
   availability = "SINGLE_ZONE"
   cloud        = var.cloud_provider
   region       = var.cloud_region
-  basic {}
+  standard {}
   environment {
     id = confluent_environment.cc_env.id
   }

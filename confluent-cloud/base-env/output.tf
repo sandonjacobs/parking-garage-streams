@@ -55,3 +55,19 @@ output "KAFKA_KEY_ID" {
 output "KAFKA_KEY_SECRET" {
   value = nonsensitive(confluent_api_key.app-manager-kafka-api-key.secret)
 }
+
+output "TOPIC_ROW_AGGREGATES_ID" {
+  value = confluent_kafka_topic.parking_row_aggregates.id
+}
+
+output "TOPIC_ROW_AGGREGATES_NAME" {
+  value = confluent_kafka_topic.parking_row_aggregates.topic_name
+}
+
+output "TOPIC_ZONE_AGGREGATES_ID" {
+  value = confluent_kafka_topic.parking_zone_aggregates.id
+}
+
+output "TOPIC_ZONE_AGGREGATES_NAME" {
+  value = confluent_kafka_topic.parking_zone_aggregates.topic_name
+}

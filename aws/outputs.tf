@@ -1,19 +1,19 @@
-output "cluster_endpoint" {
+output "postgres_cluster_endpoint" {
   description = "The cluster endpoint for the Aurora PostgreSQL cluster"
   value       = aws_rds_cluster.aurora_cluster.endpoint
 }
 
-output "reader_endpoint" {
+output "postgres_reader_endpoint" {
   description = "The reader endpoint for the Aurora PostgreSQL cluster"
   value       = aws_rds_cluster.aurora_cluster.reader_endpoint
 }
 
-output "cluster_port" {
+output "postgres_cluster_port" {
   description = "The port for the Aurora PostgreSQL cluster"
   value       = aws_rds_cluster.aurora_cluster.port
 }
 
-output "cluster_database_name" {
+output "postgres_database_name" {
   description = "The database name for the Aurora PostgreSQL cluster"
   value       = aws_rds_cluster.aurora_cluster.database_name
 }
@@ -41,10 +41,4 @@ output "security_group_id" {
 output "subnet_group_name" {
   description = "The name of the subnet group for the Aurora PostgreSQL cluster"
   value       = aws_db_subnet_group.aurora_subnet_group.name
-}
-
-output "connection_string" {
-  description = "PostgreSQL connection string for the Aurora cluster"
-  value       = "postgresql://${aws_rds_cluster.aurora_cluster.master_username}:${aws_rds_cluster.aurora_cluster.master_password != null ? "PASSWORD" : "SPECIFY_PASSWORD"}@${aws_rds_cluster.aurora_cluster.endpoint}:${aws_rds_cluster.aurora_cluster.port}/${aws_rds_cluster.aurora_cluster.database_name}"
-  sensitive   = true
 }

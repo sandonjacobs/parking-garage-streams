@@ -2,6 +2,10 @@ server:
   port: 8080
 
 app:
+  config:
+    startup:
+      empty-garages: false
+      generate-events: true
   kafka:
     topic:
       parking-garage: parking-garage

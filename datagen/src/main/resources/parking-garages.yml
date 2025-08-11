@@ -11,22 +11,31 @@ parking-garages:
       zones:
         - id: "ground-floor"
           name: "Ground Floor"
-          spaces:
-            handicap: 8
-            motorcycle: 4
-            default: 88
+          rows:
+            - id: "ground"
+              name: "ground"
+              spaces:
+                handicap: 8
+                motorcycle: 4
+                default: 88
         - id: "level-1"
           name: "Level 1"
-          spaces:
-            handicap: 6
-            motorcycle: 3
-            default: 91
+          rows:
+            - id: "level-1"
+              name: "level 1"
+              spaces:
+                handicap: 6
+                motorcycle: 3
+                default: 91
         - id: "level-2"
           name: "Level 2"
-          spaces:
-            handicap: 6
-            motorcycle: 3
-            default: 91
+          rows:
+            - id: "level-2"
+              name: "level 2"
+              spaces:
+                handicap: 6
+                motorcycle: 3
+                default: 91
 
     # North Carolina State Capitol
     - id: "raleigh-capitol"
@@ -39,16 +48,22 @@ parking-garages:
       zones:
         - id: "main-lot"
           name: "Main Parking Lot"
-          spaces:
-            handicap: 12
-            motorcycle: 6
-            default: 82
+          rows:
+            - id: "main"
+              name: "main"
+              spaces:
+                handicap: 12
+                motorcycle: 6
+                default: 82
         - id: "overflow"
           name: "Overflow Parking"
-          spaces:
-            handicap: 4
-            motorcycle: 2
-            default: 94
+          rows:
+            - id: "overflow"
+              name: "Overflow"
+              spaces:
+                handicap: 4
+                motorcycle: 2
+                default: 94
 
     # PNC Arena / NC State University
     - id: "raleigh-pnc-arena"
@@ -113,22 +128,31 @@ parking-garages:
       zones:
         - id: "north-parking"
           name: "North Parking Deck"
-          spaces:
-            handicap: 15
-            motorcycle: 8
-            default: 177
+          rows:
+            - id: "north-1"
+              name: "North 1"
+              spaces:
+                handicap: 15
+                motorcycle: 8
+                default: 177
         - id: "south-parking"
           name: "South Parking Deck"
-          spaces:
-            handicap: 12
-            motorcycle: 6
-            default: 182
+          rows:
+            - id: "south-1"
+              name: "South 1"
+              spaces:
+                handicap: 12
+                motorcycle: 6
+                default: 182
         - id: "surface-lot"
           name: "Surface Parking Lot"
-          spaces:
-            handicap: 8
-            motorcycle: 4
-            default: 188
+          rows:
+            - id: "surface"
+              name: "Surface Lot"
+              spaces:
+                handicap: 8
+                motorcycle: 4
+                default: 188
 
     # Raleigh-Durham International Airport
     - id: "raleigh-rdu-airport"
@@ -221,13 +245,16 @@ parking-garages:
       zones:
         - id: "accessible-zone"
           name: "Accessible Zone"
-          spaces:
-            handicap: 25
-            motorcycle: 5
-            default: 70
-        - id: "standard-zone"
-          name: "Standard Zone"
-          spaces:
-            handicap: 10
-            motorcycle: 4
-            default: 86 
+          rows:
+            - id: "accessible-1"
+              name: "Accessible Row 1"
+              spaces:
+                handicap: 25
+                motorcycle: 5
+                default: 70
+            - id: "standard-zone"
+              name: "Standard Zone"
+              spaces:
+                handicap: 10
+                motorcycle: 4
+                default: 86

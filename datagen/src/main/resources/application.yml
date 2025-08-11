@@ -12,6 +12,10 @@ spring:
       url: http://localhost:8081
 
 app:
+  config:
+    startup:
+      empty-garages: false
+      generate-events: true
   kafka:
     topic:
       parking-garage: parking-garage

@@ -100,11 +100,11 @@ class ParkingEventGenerator(
         val allParkingSpaces = getAllParkingSpaces(garage)
         
         if (allParkingSpaces.isEmpty()) {
-            logger.warn("No parking spaces found for garage: $garageId")
+            logger.warn("No parking spaces found for garage: {}", garageId)
             return
         }
         
-        logger.info("Starting event generation for garage $garageId with ${allParkingSpaces.size} parking spaces")
+        logger.info("Starting event generation for garage {} with {} parking spaces", garageId, allParkingSpaces.size)
         
         try {
             while (true) {
@@ -120,7 +120,7 @@ class ParkingEventGenerator(
                 }
                 
                 // Add some randomness to the timing
-                val actualDelay = (delayBetweenEvents * (0.5 + Random.nextDouble())).toLong()
+                val actualDelay = (delayBetweenEvents * (0.5 + Random.nextDouble(0.0,10.0))).toLong()
                 
                 delay(actualDelay)
                 
@@ -132,14 +132,20 @@ class ParkingEventGenerator(
                 
                 // Send the event to Kafka
                 kafkaProducer.sendParkingEventSync(event)
-                
-                logger.debug("Generated ${event.type} event for garage $garageId, space ${event.space.id}, vehicle ${event.vehicle.licensePlate}")
+
+                logger.debug(
+                    "Generated {} event for garage {}, space {}, vehicle {}",
+                    event.type,
+                    garageId,
+                    event.space.id,
+                    event.vehicle.licensePlate
+                )
             }
         } catch (e: CancellationException) {
-            logger.info("Event generation cancelled for garage: $garageId")
+            logger.warn("Event generation cancelled for garage: {}", garageId)
             throw e // Re-throw cancellation exceptions
         } catch (e: Exception) {
-            logger.error("Error in event generation loop for garage: $garageId", e)
+            logger.error("Error in event generation loop for garage: {}", garageId, e)
             // Don't retry on general exceptions, just log and exit
         }
     }

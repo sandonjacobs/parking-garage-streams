@@ -8,9 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
  * Factory class for creating ParkingEvent instances with realistic data.
  */
 object ParkingEventFactory {
-    
-    private val eventIdCounter = AtomicLong(0)
-    
+
     /**
      * Creates a parking entry event for a specific parking space.
      */
@@ -71,8 +69,8 @@ object ParkingEventFactory {
         parkingSpace: ParkingSpace,
         location: Location? = null
     ): ParkingEvent {
-        // Simple 70% chance of entry, 30% chance of exit
-        val shouldCreateEntry = Math.random() < 0.7
+        // Simple 90% chance of entry, 10% chance of exit
+        val shouldCreateEntry = Math.random() < 0.9
         
         return if (shouldCreateEntry) {
             createEntryEvent(garageId, parkingSpace)

@@ -47,15 +47,19 @@ resource "confluent_connector" "postgres_sink_aggregates" {
     "errors.deadletterqueue.context.headers.enable" = "true"
   }
 
-  # depends_on = [
-  #   confluent_service_account.connector,
-  #   confluent_role_binding.connector_resource_owner,
-  #   confluent_role_binding.connector_topic_developer_read,
-  #   confluent_role_binding.connector_topic_developer_write
-  # ]
   depends_on = [
     confluent_service_account.connector,
+    confluent_service_account.connector_admin,
+    confluent_kafka_acl.connector_consumer_group_read,
+    confluent_kafka_acl.source_topic_row_aggregates_describe,
+    confluent_kafka_acl.source_topic_row_aggregates_read,
+    confluent_kafka_acl.source_topic_zone_aggregates_describe,
+    confluent_kafka_acl.source_topic_zone_aggregates_read,
+    confluent_kafka_acl.dlq_describe, confluent_kafka_acl.dlq_write,
     confluent_kafka_topic.postgres_sink_aggregates_dlq
   ]
 
+  lifecycle {
+    prevent_destroy = false
+  }
 }

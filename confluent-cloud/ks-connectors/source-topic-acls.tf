@@ -12,6 +12,10 @@ resource "confluent_kafka_acl" "source_topic_row_aggregates_read" {
     key    = confluent_api_key.connector_admin.id
     secret = confluent_api_key.connector_admin.secret
   }
+
+  depends_on = [
+    confluent_api_key.connector_admin
+  ]
 }
 
 resource "confluent_kafka_acl" "source_topic_row_aggregates_describe" {
@@ -28,6 +32,10 @@ resource "confluent_kafka_acl" "source_topic_row_aggregates_describe" {
     key    = confluent_api_key.connector_admin.id
     secret = confluent_api_key.connector_admin.secret
   }
+
+  depends_on = [
+    confluent_api_key.connector_admin
+  ]
 }
 
 resource "confluent_kafka_acl" "source_topic_zone_aggregates_read" {
@@ -44,6 +52,10 @@ resource "confluent_kafka_acl" "source_topic_zone_aggregates_read" {
     key    = confluent_api_key.connector_admin.id
     secret = confluent_api_key.connector_admin.secret
   }
+
+  depends_on = [
+    confluent_api_key.connector_admin
+  ]
 }
 
 resource "confluent_kafka_acl" "source_topic_zone_aggregates_describe" {
@@ -60,6 +72,10 @@ resource "confluent_kafka_acl" "source_topic_zone_aggregates_describe" {
     key    = confluent_api_key.connector_admin.id
     secret = confluent_api_key.connector_admin.secret
   }
+
+  depends_on = [
+    confluent_api_key.connector_admin
+  ]
 }
 
 # Consumer Group READ permission for managed connector groups (connect-*)
@@ -77,6 +93,10 @@ resource "confluent_kafka_acl" "connector_consumer_group_read" {
     key    = confluent_api_key.connector_admin.id
     secret = confluent_api_key.connector_admin.secret
   }
+
+  depends_on = [
+    confluent_api_key.connector_admin
+  ]
 }
 
 # DLQ topic ACLs (WRITE/DESCRIBE)
@@ -94,6 +114,11 @@ resource "confluent_kafka_acl" "dlq_write" {
     key    = confluent_api_key.connector_admin.id
     secret = confluent_api_key.connector_admin.secret
   }
+
+  depends_on = [
+    confluent_api_key.connector_admin,
+    confluent_kafka_topic.postgres_sink_aggregates_dlq
+  ]
 }
 
 resource "confluent_kafka_acl" "dlq_describe" {
@@ -110,4 +135,9 @@ resource "confluent_kafka_acl" "dlq_describe" {
     key    = confluent_api_key.connector_admin.id
     secret = confluent_api_key.connector_admin.secret
   }
+
+  depends_on = [
+    confluent_api_key.connector_admin,
+    confluent_kafka_topic.postgres_sink_aggregates_dlq
+  ]
 }

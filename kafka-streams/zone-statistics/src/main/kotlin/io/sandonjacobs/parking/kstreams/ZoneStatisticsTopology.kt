@@ -12,6 +12,12 @@ import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.GlobalKTable
 import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.Produced
+import org.apache.kafka.streams.processor.api.Processor
+import org.apache.kafka.streams.processor.api.ProcessorContext
+import org.apache.kafka.streams.processor.api.ProcessorSupplier
+import org.apache.kafka.streams.processor.api.Record
+import org.apache.kafka.streams.state.KeyValueStore
+import org.apache.kafka.streams.state.Stores
 import org.slf4j.LoggerFactory
 
 /**
@@ -25,6 +31,42 @@ data class SpaceStatusWithGarage(
 class ZoneStatisticsTopology(private val parkingSpaceStatusSerde: Serde<ParkingSpaceStatus>,
                              private val garageSerde: Serde<ParkingGarage>,
                              private val zoneStatisticsSerde: Serde<ParkingGarageZoneStatus>) {
+
+    /**
+     * Stateful processor that maintains per-zone aggregates in a state store.
+     */
+    private class ZoneAggregatorProcessor(
+        private val storeName: String,
+        private val updateFn: (ParkingSpaceStatus, ParkingGarageZoneStatus, ParkingGarage) -> ParkingGarageZoneStatus
+    ) : Processor<String, SpaceStatusWithGarage, String, ParkingGarageZoneStatus> {
+
+        private lateinit var context: ProcessorContext<String, ParkingGarageZoneStatus>
+        private lateinit var store: KeyValueStore<String, ParkingGarageZoneStatus>
+
+        override fun init(context: ProcessorContext<String, ParkingGarageZoneStatus>) {
+            this.context = context
+            @Suppress("UNCHECKED_CAST")
+            store = context.getStateStore(storeName) as KeyValueStore<String, ParkingGarageZoneStatus>
+        }
+
+        override fun process(record: Record<String, SpaceStatusWithGarage>) {
+            val zoneId = record.key()
+            val value = record.value()
+            val current = store.get(zoneId) ?: ParkingGarageZoneStatus.newBuilder()
+                .setId(zoneId)
+                .setCarStatus(ZoneStatus.newBuilder().setVehicleType(VehicleType.CAR).setCapacity(0).setOccupied(0))
+                .setHandicapStatus(ZoneStatus.newBuilder().setVehicleType(VehicleType.HANDICAP).setCapacity(0).setOccupied(0))
+                .setMotorcycleStatus(ZoneStatus.newBuilder().setVehicleType(VehicleType.MOTORCYCLE).setCapacity(0).setOccupied(0))
+                .build()
+
+            val updated = updateFn(value.spaceStatus, current, value.garage)
+            store.put(zoneId, updated)
+
+            context.forward(Record(zoneId, updated, record.timestamp()))
+        }
+
+        override fun close() {}
+    }
 
     private val logger = LoggerFactory.getLogger(ZoneStatisticsTopology::class.java)
     
@@ -127,49 +169,27 @@ class ZoneStatisticsTopology(private val parkingSpaceStatusSerde: Serde<ParkingS
                 { spaceStatus, garage -> SpaceStatusWithGarage(spaceStatus, garage) }
             )
         
-        // Process each joined record
+        // Prepare state store for per-zone aggregation
+        val storeName = "zone-aggregates-store"
+        val storeBuilder = Stores.keyValueStoreBuilder(
+            Stores.persistentKeyValueStore(storeName),
+            Serdes.String(),
+            zoneStatisticsSerde
+        )
+        builder.addStateStore(storeBuilder)
+
+        // Process each joined record with stateful transformer
         joinedStream
             // Create a key based on the zone ID
-            .selectKey { _, joined -> 
-                "${joined.spaceStatus.space.garageId}-${joined.spaceStatus.space.zoneId}" 
+            .selectKey { _, joined ->
+                "${joined.spaceStatus.space.garageId}-${joined.spaceStatus.space.zoneId}"
             }
-            // Process each record to create or update the zone status
-            .mapValues { _, joined ->
-                val spaceStatus = joined.spaceStatus
-                val garage = joined.garage
-                logger.debug("joined garage id -> {}", garage.id)
-
-                val zoneId = "${spaceStatus.space.garageId}-${spaceStatus.space.zoneId}"
-                logger.debug("zoneId = {}", zoneId)
-
-                // Create a new zone status
-                val carStatus = ZoneStatus.newBuilder()
-                    .setVehicleType(VehicleType.CAR)
-                    .setCapacity(0)
-                    .setOccupied(0)
-                    .build()
-                
-                val handicapStatus = ZoneStatus.newBuilder()
-                    .setVehicleType(VehicleType.HANDICAP)
-                    .setCapacity(0)
-                    .setOccupied(0)
-                    .build()
-
-                val motorcycleStatus = ZoneStatus.newBuilder()
-                    .setVehicleType(VehicleType.MOTORCYCLE)
-                    .setCapacity(0)
-                    .setOccupied(0)
-                    .build()
-
-                val initialZoneStatus = ParkingGarageZoneStatus.newBuilder()
-                    .setId(zoneId)
-                    .setCarStatus(carStatus)
-                    .setHandicapStatus(handicapStatus)
-                    .setMotorcycleStatus(motorcycleStatus)
-                    .build()
-                // Update the zone status with the space status
-                updateZoneStatus(spaceStatus, initialZoneStatus, garage)
-            }
+            .process(
+                ProcessorSupplier {
+                    ZoneAggregatorProcessor(storeName, this::updateZoneStatus)
+                },
+                storeName
+            )
             // Output to the zone statistics topic
             .to(ZONE_STATISTICS_TOPIC, Produced.with(Serdes.String(), zoneStatisticsSerde))
         

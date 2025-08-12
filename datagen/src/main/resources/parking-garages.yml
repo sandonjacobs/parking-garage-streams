@@ -27,15 +27,15 @@ parking-garages:
                 handicap: 6
                 motorcycle: 3
                 default: 91
-        - id: "level-2"
-          name: "Level 2"
-          rows:
-            - id: "level-2"
-              name: "level 2"
-              spaces:
-                handicap: 6
-                motorcycle: 3
-                default: 91
+#        - id: "level-2"
+#          name: "Level 2"
+#          rows:
+#            - id: "level-2"
+#              name: "level 2"
+#              spaces:
+#                handicap: 6
+#                motorcycle: 3
+#                default: 91
 
     # North Carolina State Capitol
     - id: "raleigh-capitol"
@@ -55,15 +55,15 @@ parking-garages:
                 handicap: 12
                 motorcycle: 6
                 default: 82
-        - id: "overflow"
-          name: "Overflow Parking"
-          rows:
-            - id: "overflow"
-              name: "Overflow"
-              spaces:
-                handicap: 4
-                motorcycle: 2
-                default: 94
+#        - id: "overflow"
+#          name: "Overflow Parking"
+#          rows:
+#            - id: "overflow"
+#              name: "Overflow"
+#              spaces:
+#                handicap: 4
+#                motorcycle: 2
+#                default: 94
 
     # PNC Arena / NC State University
     - id: "raleigh-pnc-arena"
@@ -89,12 +89,12 @@ parking-garages:
                 handicap: 3
                 motorcycle: 2
                 default: 25
-            - id: "row-c"
-              name: "Row C"
-              spaces:
-                handicap: 3
-                motorcycle: 2
-                default: 25
+#            - id: "row-c"
+#              name: "Row C"
+#              spaces:
+#                handicap: 3
+#                motorcycle: 2
+#                default: 25
         - id: "east-lot"
           name: "East Lot"
           rows:
@@ -110,49 +110,49 @@ parking-garages:
                 handicap: 4
                 motorcycle: 3
                 default: 33
-            - id: "row-3"
-              name: "Row 3"
-              spaces:
-                handicap: 4
-                motorcycle: 3
-                default: 33
+#            - id: "row-3"
+#              name: "Row 3"
+#              spaces:
+#                handicap: 4
+#                motorcycle: 3
+#                default: 33
 
-    # Crabtree Valley Mall
-    - id: "raleigh-crabtree-mall"
-      name: "Crabtree Valley Mall Parking"
-      location:
-        latitude: "35.8347"
-        longitude: "-78.6821"
-        address: "4325 Glenwood Ave, Raleigh, NC 27612"
-        description: "Large shopping mall parking area"
-      zones:
-        - id: "north-parking"
-          name: "North Parking Deck"
-          rows:
-            - id: "north-1"
-              name: "North 1"
-              spaces:
-                handicap: 15
-                motorcycle: 8
-                default: 177
-        - id: "south-parking"
-          name: "South Parking Deck"
-          rows:
-            - id: "south-1"
-              name: "South 1"
-              spaces:
-                handicap: 12
-                motorcycle: 6
-                default: 182
-        - id: "surface-lot"
-          name: "Surface Parking Lot"
-          rows:
-            - id: "surface"
-              name: "Surface Lot"
-              spaces:
-                handicap: 8
-                motorcycle: 4
-                default: 188
+#    # Crabtree Valley Mall
+#    - id: "raleigh-crabtree-mall"
+#      name: "Crabtree Valley Mall Parking"
+#      location:
+#        latitude: "35.8347"
+#        longitude: "-78.6821"
+#        address: "4325 Glenwood Ave, Raleigh, NC 27612"
+#        description: "Large shopping mall parking area"
+#      zones:
+#        - id: "north-parking"
+#          name: "North Parking Deck"
+#          rows:
+#            - id: "north-1"
+#              name: "North 1"
+#              spaces:
+#                handicap: 15
+#                motorcycle: 8
+#                default: 177
+#        - id: "south-parking"
+#          name: "South Parking Deck"
+#          rows:
+#            - id: "south-1"
+#              name: "South 1"
+#              spaces:
+#                handicap: 12
+#                motorcycle: 6
+#                default: 182
+#        - id: "surface-lot"
+#          name: "Surface Parking Lot"
+#          rows:
+#            - id: "surface"
+#              name: "Surface Lot"
+#              spaces:
+#                handicap: 8
+#                motorcycle: 4
+#                default: 188
 
     # Raleigh-Durham International Airport
     - id: "raleigh-rdu-airport"
@@ -199,18 +199,18 @@ parking-garages:
                 handicap: 8
                 motorcycle: 5
                 default: 37
-            - id: "level-3"
-              name: "Level 3"
-              spaces:
-                handicap: 8
-                motorcycle: 5
-                default: 37
-        - id: "economy-lot"
-          name: "Economy Parking Lot"
-          spaces:
-            handicap: 10
-            motorcycle: 6
-            default: 184
+#            - id: "level-3"
+#              name: "Level 3"
+#              spaces:
+#                handicap: 8
+#                motorcycle: 5
+#                default: 37
+#        - id: "economy-lot"
+#          name: "Economy Parking Lot"
+#          spaces:
+#            handicap: 10
+#            motorcycle: 6
+#            default: 184
 
     # Motorcycle-Friendly Downtown Garage
     - id: "raleigh-motorcycle-friendly"
@@ -221,12 +221,12 @@ parking-garages:
         address: "Hargett Street, Downtown Raleigh, NC"
         description: "Specialized garage with high motorcycle capacity"
       zones:
-        - id: "motorcycle-zone"
-          name: "Motorcycle Zone"
-          spaces:
-            handicap: 0
-            motorcycle: 60
-            default: 20
+#        - id: "motorcycle-zone"
+#          name: "Motorcycle Zone"
+#          spaces:
+#            handicap: 0
+#            motorcycle: 60
+#            default: 20
         - id: "mixed-zone"
           name: "Mixed Vehicle Zone"
           spaces:

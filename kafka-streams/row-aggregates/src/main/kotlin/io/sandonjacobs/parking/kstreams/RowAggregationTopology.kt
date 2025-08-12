@@ -15,6 +15,12 @@ import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.GlobalKTable
 import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.Produced
+import org.apache.kafka.streams.processor.api.Processor
+import org.apache.kafka.streams.processor.api.ProcessorContext
+import org.apache.kafka.streams.processor.api.ProcessorSupplier
+import org.apache.kafka.streams.processor.api.Record
+import org.apache.kafka.streams.state.KeyValueStore
+import org.apache.kafka.streams.state.Stores
 import org.slf4j.LoggerFactory
 
 /**
@@ -33,6 +39,42 @@ class RowAggregationTopology(private val parkingSpaceStatusSerde: Serde<ParkingS
     
     // Store the garage global table as a class member so we can access it in the aggregate function
     private lateinit var garageGlobalTable: GlobalKTable<String, ParkingGarage>
+
+    /**
+     * Stateful processor that maintains per-row aggregates in a state store.
+     */
+    private class RowAggregatorProcessor(
+        private val storeName: String,
+        private val updateFn: (ParkingSpaceStatus, ParkingGarageRowStatus, ParkingGarage) -> ParkingGarageRowStatus
+    ) : Processor<String, SpaceStatusWithGarage, String, ParkingGarageRowStatus> {
+
+        private lateinit var context: ProcessorContext<String, ParkingGarageRowStatus>
+        private lateinit var store: KeyValueStore<String, ParkingGarageRowStatus>
+
+        override fun init(context: ProcessorContext<String, ParkingGarageRowStatus>) {
+            this.context = context
+            @Suppress("UNCHECKED_CAST")
+            store = context.getStateStore(storeName) as KeyValueStore<String, ParkingGarageRowStatus>
+        }
+
+        override fun process(record: Record<String, SpaceStatusWithGarage>) {
+            val rowId = record.key()
+            val value = record.value()
+            val current = store.get(rowId) ?: ParkingGarageRowStatus.newBuilder()
+                .setId(rowId)
+                .setCarStatus(RowStatus.newBuilder().setVehicleType(VehicleType.CAR).setCapacity(0).setOccupied(0))
+                .setHandicapStatus(RowStatus.newBuilder().setVehicleType(VehicleType.HANDICAP).setCapacity(0).setOccupied(0))
+                .setMotorcycleStatus(RowStatus.newBuilder().setVehicleType(VehicleType.MOTORCYCLE).setCapacity(0).setOccupied(0))
+                .build()
+
+            val updated = updateFn(value.spaceStatus, current, value.garage)
+            store.put(rowId, updated)
+
+            context.forward(Record(rowId, updated, record.timestamp()))
+        }
+
+        override fun close() {}
+    }
 
     companion object {
         const val PARKING_SPACE_STATUS_TOPIC = "parking-space-status"
@@ -131,50 +173,27 @@ class RowAggregationTopology(private val parkingSpaceStatusSerde: Serde<ParkingS
                 { spaceStatus, garage -> SpaceStatusWithGarage(spaceStatus, garage) }
             )
         
-        // Process each joined record
+        // Prepare state store for per-row aggregation
+        val storeName = "row-aggregates-store"
+        val storeBuilder = Stores.keyValueStoreBuilder(
+            Stores.persistentKeyValueStore(storeName),
+            Serdes.String(),
+            rowAggregateSerde
+        )
+        builder.addStateStore(storeBuilder)
+
+        // Process each joined record with stateful transformer
         joinedStream
             // Create a key based on the row ID
-            .selectKey { _, joined -> 
-                "${joined.spaceStatus.space.garageId}-${joined.spaceStatus.space.zoneId}-${joined.spaceStatus.space.rowId}" 
+            .selectKey { _, joined ->
+                "${joined.spaceStatus.space.garageId}-${joined.spaceStatus.space.zoneId}-${joined.spaceStatus.space.rowId}"
             }
-            // Process each record to create or update the row status
-            .mapValues { _, joined ->
-                val spaceStatus = joined.spaceStatus
-                val garage = joined.garage
-                logger.debug("joined garage id -> {}", garage.id)
-
-                val rowId = "${spaceStatus.space.garageId}-${spaceStatus.space.zoneId}-${spaceStatus.space.rowId}"
-                logger.debug("rowId = {}", rowId)
-
-                // Create a new row status
-                val carStatus = RowStatus.newBuilder()
-                    .setVehicleType(VehicleType.CAR)
-                    .setCapacity(0)
-                    .setOccupied(0)
-                    .build()
-                
-                val handicapStatus = RowStatus.newBuilder()
-                    .setVehicleType(VehicleType.HANDICAP)
-                    .setCapacity(0)
-                    .setOccupied(0)
-                    .build()
-                
-                val motorcycleStatus = RowStatus.newBuilder()
-                    .setVehicleType(VehicleType.MOTORCYCLE)
-                    .setCapacity(0)
-                    .setOccupied(0)
-                    .build()
-                
-                val initialRowStatus = ParkingGarageRowStatus.newBuilder()
-                    .setId(rowId)
-                    .setCarStatus(carStatus)
-                    .setHandicapStatus(handicapStatus)
-                    .setMotorcycleStatus(motorcycleStatus)
-                    .build()
-                
-                // Update the row status with the space status
-                updateRowStatus(spaceStatus, initialRowStatus, garage)
-            }
+            .process(
+                ProcessorSupplier {
+                    RowAggregatorProcessor(storeName, this::updateRowStatus)
+                },
+                storeName
+            )
             // Output to the row aggregation topic
             .to(ROW_AGGREGATION_TOPIC, Produced.with(Serdes.String(), rowAggregateSerde))
         

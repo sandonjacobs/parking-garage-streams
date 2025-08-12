@@ -25,6 +25,37 @@ import kotlin.test.assertEquals
 
 class ZoneStatisticsTopologyTest {
 
+    @ParameterizedTest
+    @EnumSource(VehicleType::class, names = ["UNRECOGNIZED"], mode = EnumSource.Mode.EXCLUDE)
+    fun `checks for zone occupancy accumulation`(vehicleType: VehicleType) {
+        // Choose the first zone
+        val zone = testGarage.parkingZonesList.first()
+        val spaces = zone.parkingRowsList.flatMap { it.parkingSpacesList }.filter { it.type == vehicleType }
+
+        // Send OCCUPIED for each space of the given type in the zone
+        spaces.forEach { space ->
+            val status = ParkingSpaceStatus.newBuilder()
+                .setId(space.id)
+                .setStatus(SpaceStatus.OCCUPIED)
+                .setSpace(space)
+                .setLastUpdated(Timestamp.newBuilder().build())
+                .setVehicle(Vehicle.newBuilder().build())
+                .build()
+            spaceStatusTopic.pipeInput(status.id, status)
+        }
+
+        val outputRecords = outputTopic.readRecordsToList()
+        assert(outputRecords.isNotEmpty()) { "No output records produced" }
+        val lastRecord = outputRecords.last().value()
+
+        when (vehicleType) {
+            VehicleType.CAR -> assertEquals(spaces.size, lastRecord.carStatus.occupied)
+            VehicleType.MOTORCYCLE -> assertEquals(spaces.size, lastRecord.motorcycleStatus.occupied)
+            VehicleType.HANDICAP -> assertEquals(spaces.size, lastRecord.handicapStatus.occupied)
+            VehicleType.UNRECOGNIZED -> kotlin.test.fail("Unexpected UNRECOGNIZED type")
+        }
+    }
+
     private lateinit var topology: ZoneStatisticsTopology
     private lateinit var garageFaker: GarageFaker
 

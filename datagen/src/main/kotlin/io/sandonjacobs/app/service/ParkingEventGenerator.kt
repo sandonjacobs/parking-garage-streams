@@ -120,7 +120,7 @@ class ParkingEventGenerator(
                 }
                 
                 // Add some randomness to the timing
-                val actualDelay = (delayBetweenEvents * (0.5 + Random.nextDouble(0.0,10.0))).toLong()
+                val actualDelay = (delayBetweenEvents * (0.5 + Random.nextDouble(0.0,1.0))).toLong()
                 
                 delay(actualDelay)
                 

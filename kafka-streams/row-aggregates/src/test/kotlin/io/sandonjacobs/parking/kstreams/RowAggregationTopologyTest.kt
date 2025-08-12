@@ -19,6 +19,7 @@ import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import kotlin.test.assertEquals
@@ -94,6 +95,40 @@ class RowAggregationTopologyTest {
                     spaceStatusTopic.pipeInput(spaceStatus.id, spaceStatus)
                 }
             }
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(VehicleType::class, names = ["UNRECOGNIZED"], mode = EnumSource.Mode.EXCLUDE)
+    fun `checks for occupancy changes`(vehicleType: VehicleType) {
+        val randomRow = testGarage.parkingZonesList
+            .flatMap { it.parkingRowsList }
+            .first()
+
+        val spaces = randomRow.parkingSpacesList.filter { it.type == vehicleType }
+
+        spaces.forEach { it ->
+
+                val status = ParkingSpaceStatus.newBuilder()
+                    .setId(it.id)
+                    .setStatus(SpaceStatus.OCCUPIED) // Change to OCCUPIED
+                    .setSpace(it)
+                    .setLastUpdated(Timestamp.newBuilder().build())
+                    .setVehicle(Vehicle.newBuilder().build())
+                    .build()
+
+                spaceStatusTopic.pipeInput(status.id, status)
+
+        }
+        val outputRecords = outputTopic.readRecordsToList()
+        assert(outputRecords.isNotEmpty()) { "No output records produced" }
+        val lastRecord = outputRecords.last().value()
+
+        when (vehicleType) {
+            VehicleType.CAR -> { assertEquals(spaces.size, lastRecord.carStatus.occupied) }
+            VehicleType.MOTORCYCLE -> { assertEquals(spaces.size, lastRecord.motorcycleStatus.occupied) }
+            VehicleType.HANDICAP -> { assertEquals(spaces.size, lastRecord.handicapStatus.occupied) }
+            VehicleType.UNRECOGNIZED -> fail { "What is a $vehicleType?" }
         }
     }
 
@@ -235,6 +270,13 @@ class RowAggregationTopologyTest {
         assertEquals(motorcycleRowCapacity, result.motorcycleStatus.capacity,
             "Expected motorcycle capacity to be $motorcycleRowCapacity but was ${result.motorcycleStatus.capacity}")
 
+
+        when (vehicleType) {
+            VehicleType.CAR -> { assertEquals(2, result.carStatus.occupied) }
+            VehicleType.MOTORCYCLE -> { assertEquals(2, result.motorcycleStatus.occupied) }
+            VehicleType.HANDICAP -> { assertEquals(1, result.handicapStatus.occupied) }
+            VehicleType.UNRECOGNIZED -> fail { "What is a $vehicleType?" }
+        }
     }
 
     @ParameterizedTest

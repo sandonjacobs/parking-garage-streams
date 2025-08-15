@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
-import kotlin.test.assertFalse
 
 class ParkingSpaceStatusTopologyTest {
 
@@ -109,7 +108,7 @@ class ParkingSpaceStatusTopologyTest {
     }
 
     @Test
-    fun `process EXIT events`() {
+    fun `process EXIT event without prior OCCUPIED should be ignored`() {
         // Given
         val parkingSpace = createTestParkingSpace("space-1", "zone-1", "garage-1")
         val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.CAR)
@@ -120,11 +119,41 @@ class ParkingSpaceStatusTopologyTest {
 
         // Then
         val outputRecords = outputTopic.readRecordsToList()
-        assertEquals(1, outputRecords.size)
-        val vacantEvent = outputRecords[0].value
-        assertEquals(parkingSpace.id, vacantEvent.id)
-        assertEquals(SpaceStatus.VACANT, vacantEvent.status)
-        assertFalse(vacantEvent.hasVehicle())
+        assertEquals(0, outputRecords.size)
+    }
+
+    @Test
+    fun `process EXIT event with prior OCCUPIED status should be ignored`() {
+        // Given
+        val parkingSpace = createTestParkingSpace("space-1", "zone-1", "garage-1")
+        val vehicle = createTestVehicle("vehicle-1", "ABC123", "CA", VehicleType.CAR)
+        val enterEvent = createParkingEvent(ParkingEventType.ENTER, parkingSpace, vehicle)
+
+        // When
+        inputTopic.pipeInput(parkingSpace.id, enterEvent)
+
+        // Then
+        val firstOutput = outputTopic.readRecordsToList().first()
+        assertEquals(parkingSpace.id, firstOutput.key)
+
+        val firstStatus = firstOutput.value
+        assertEquals(parkingSpace.id, firstStatus.id)
+        assertEquals(parkingSpace, firstStatus.space)
+        assertEquals(SpaceStatus.OCCUPIED, firstStatus.status)
+        assertEquals(vehicle, firstStatus.vehicle)
+        assertNotNull(firstStatus.lastUpdated)
+
+        // Given
+        val exitEvent = createParkingEvent(ParkingEventType.EXIT, parkingSpace, vehicle)
+
+        // When
+        inputTopic.pipeInput(parkingSpace.id, exitEvent)
+
+        // Then
+        val finalStatus = outputTopic.readRecordsToList().find { it.key == parkingSpace.id && it.value().status.equals(
+            SpaceStatus.VACANT) }!!.value
+
+        assertEquals(parkingSpace.id, finalStatus.id)
     }
 
     @Test
@@ -179,6 +208,48 @@ class ParkingSpaceStatusTopologyTest {
         val outputValues = outputRecords.map { it.value }
         assertNotNull(outputValues.find { ps -> ps.id.equals(parkingSpace.id) && ps.status.equals(SpaceStatus.OCCUPIED) })
         assertNotNull(outputValues.find { ps -> ps.id.equals(parkingSpace.id) && ps.status.equals(SpaceStatus.VACANT) })
+    }
+
+    @Test
+    fun `ENTER when already OCCUPIED should be ignored`() {
+        // Given
+        val space = createTestParkingSpace("space-enter-dup", "zone-1", "garage-1")
+        val vehicle = createTestVehicle("vehicle-dup", "ABC123", "CA", VehicleType.CAR)
+        val enter1 = createParkingEvent(ParkingEventType.ENTER, space, vehicle)
+        val enter2 = createParkingEvent(ParkingEventType.ENTER, space, vehicle)
+
+        // When
+        inputTopic.pipeInput(space.id, enter1)
+        inputTopic.pipeInput(space.id, enter2) // should be dropped
+
+        // Then
+        val outputs = outputTopic.readRecordsToList()
+        assertEquals(1, outputs.size)
+        val status = outputs[0].value
+        assertEquals(SpaceStatus.OCCUPIED, status.status)
+        assertEquals(vehicle, status.vehicle)
+        assertEquals(space.id, status.id)
+    }
+
+    @Test
+    fun `duplicate ENTER then EXIT should yield OCCUPIED then VACANT`() {
+        // Given
+        val space = createTestParkingSpace("space-seq", "zone-1", "garage-1")
+        val vehicle = createTestVehicle("vehicle-seq", "XYZ789", "NY", VehicleType.CAR)
+        val enter1 = createParkingEvent(ParkingEventType.ENTER, space, vehicle)
+        val enter2 = createParkingEvent(ParkingEventType.ENTER, space, vehicle)
+        val exit = createParkingEvent(ParkingEventType.EXIT, space, vehicle)
+
+        // When
+        inputTopic.pipeInput(space.id, enter1)
+        inputTopic.pipeInput(space.id, enter2) // should be dropped
+        inputTopic.pipeInput(space.id, exit)
+
+        // Then
+        val outputs = outputTopic.readRecordsToList()
+        assertEquals(2, outputs.size)
+        assertEquals(SpaceStatus.OCCUPIED, outputs[0].value.status)
+        assertEquals(SpaceStatus.VACANT, outputs[1].value.status)
     }
 
     // Helper functions to create test data

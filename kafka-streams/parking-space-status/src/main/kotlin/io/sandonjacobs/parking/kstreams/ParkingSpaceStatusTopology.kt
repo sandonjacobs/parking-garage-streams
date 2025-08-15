@@ -40,22 +40,64 @@ class ParkingSpaceStatusTopology(
             Consumed.with(Serdes.String(), parkingEventSerde)
         )
 
-        // Process parking events
+        // KTable with the latest known status for each space
+        val spaceStatusTable = builder.table(
+            PARKING_SPACE_STATUS_TOPIC,
+            Consumed.with(Serdes.String(), parkingSpaceStatusSerde)
+        )
+
+        // Process parking events using current state to gate EXIT events
         parkingEventsStream
             .peek { _, event -> logger.debug("incoming parking event for space -> {}", event.space) }
-            .mapValues { _, event ->
+            .leftJoin(spaceStatusTable) { event, currentStatus -> event to currentStatus }
+            .filter { key, (event, currentStatus) ->
+                when (event.type) {
+                    ParkingEventType.ENTER -> {
+                        val canEnter = currentStatus?.status != SpaceStatus.OCCUPIED
+                        if (!canEnter) {
+                            logger.debug(
+                                "dropping ENTER for space {} because current status is {}",
+                                key,
+                                currentStatus?.status
+                            )
+                        }
+                        canEnter
+                    }
+                    ParkingEventType.EXIT -> {
+                        val isOccupied = currentStatus?.status == SpaceStatus.OCCUPIED
+                        if (!isOccupied) {
+                            logger.debug(
+                                "dropping EXIT for space {} because current status is {}",
+                                key,
+                                currentStatus?.status
+                            )
+                        }
+                        isOccupied
+                    }
+                    else -> true
+                }
+            }
+            .mapValues { _, (event, _) ->
                 when (event.type) {
                     ParkingEventType.ENTER -> {
                         logger.debug("space {} being marked as OCCUPIED", event.space)
                         event.mkStatus(SpaceStatus.OCCUPIED)
                     }
+                    ParkingEventType.EXIT -> {
+                        logger.debug("space {} being marked as VACANT due to EXIT", event.space)
+                        event.mkStatus(SpaceStatus.VACANT)
+                    }
                     else -> {
-                        logger.debug("space {} being marked as VACANT due to event type {}", event.space, event.type)
+                        logger.debug(
+                            "space {} being marked as VACANT due to event type {}",
+                            event.space,
+                            event.type
+                        )
                         event.mkStatus(SpaceStatus.VACANT)
                     }
                 }
             }
-            .peek { _, event -> logger.debug("vehicle on event {}", event?.vehicle)}
+            .peek { _, status -> logger.debug("emitting status for space {} -> {}", status.space.id, status.status) }
             .to(
                 PARKING_SPACE_STATUS_TOPIC,
                 Produced.with(Serdes.String(), parkingSpaceStatusSerde)

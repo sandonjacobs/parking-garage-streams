@@ -195,6 +195,14 @@ cloud.getProperty(KAFKA_KEY_ID)?.let { kafkaKey ->
 }
 ```
 
+### flink-table-api Module (Future)
+
+When the flink-table-api module is implemented, it will also connect to Confluent Cloud using the same infrastructure and credentials.
+
+### aws Module
+
+The aws module can be used in conjunction with this module to provide database storage for aggregated results from the stream processing applications.
+
 ## Common Operations
 
 ### Exporting Confluent Cloud Credentials

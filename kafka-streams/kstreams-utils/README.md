@@ -142,3 +142,12 @@ To run tests:
 ```bash
 ./gradlew :kafka-streams:kstreams-utils:test
 ```
+
+## Integration with Other Modules
+
+This module provides utilities for all Kafka Streams applications in the project:
+
+- **parking-space-status**: Uses configuration loading and serde utilities
+- **row-aggregates**: Uses configuration loading and serde utilities  
+- **zone-statistics**: Uses configuration loading and serde utilities
+- **utils**: Depends on Protocol Buffer definitions and data models

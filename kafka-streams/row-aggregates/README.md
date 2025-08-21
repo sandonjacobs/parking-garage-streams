@@ -201,6 +201,8 @@ This module:
 - Uses garage information that may be produced by the **datagen** module
 - Uses common utilities from the **kstreams-utils** module
 - Uses Protocol Buffer definitions from the **utils** module
+- Integrates with **confluent-cloud** infrastructure for cloud deployment
+- Can be used with **aws** infrastructure for storing aggregated results
 
 ## Use Cases
 

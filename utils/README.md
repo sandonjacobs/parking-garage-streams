@@ -1,6 +1,6 @@
 # Parking Garage Utils Module
 
-This module provides common utilities and data models for the Parking Garage Streams project using Protocol Buffers for efficient serialization and data exchange.
+This module provides common utilities and data models for the Parking Garage Streams project using Protocol Buffers for efficient serialization and data exchange. It serves as the foundational layer that all other modules depend on.
 
 ## Overview
 
@@ -248,17 +248,26 @@ The module uses the following dependencies:
 - **Protocol Buffers**: For data model definition and code generation
 - **Jackson Annotations**: For JSON serialization support in DTOs
 
-To build the module:
+### Build Commands
 
 ```bash
+# Build the module
 ./gradlew :utils:build
-```
 
-To run tests:
-
-```bash
+# Run tests
 ./gradlew :utils:test
+
+# Clean build outputs
+./gradlew :utils:clean
 ```
+
+### Integration with Other Modules
+
+This module is a dependency for all other modules in the project:
+
+- **datagen**: Uses Protocol Buffer definitions and factory classes
+- **kafka-streams**: All sub-modules use the shared data models
+- **flink-table-api**: Will use Protocol Buffer definitions for data exchange
 
 ## Generated Classes
 

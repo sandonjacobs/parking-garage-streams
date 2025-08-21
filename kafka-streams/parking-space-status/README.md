@@ -164,6 +164,7 @@ The module has the following dependencies:
 
 This module:
 - Consumes events produced by the **datagen** module
-- Produces status updates consumed by the **row-aggregates** module
+- Produces status updates consumed by the **row-aggregates** and **zone-statistics** modules
 - Uses common utilities from the **kstreams-utils** module
 - Uses Protocol Buffer definitions from the **utils** module
+- Integrates with **confluent-cloud** infrastructure for cloud deployment

@@ -88,6 +88,30 @@ Key variables you can customize:
 - Database credentials should be managed securely. Consider using AWS Secrets Manager for production deployments.
 - Enable deletion protection for production databases by setting `db_deletion_protection = true`.
 
+## Integration with Other Modules
+
+This AWS RDS module can be used in conjunction with other modules in the Parking Garage Streams project:
+
+### Stream Processing Applications
+- **kafka-streams**: The row-aggregates and zone-statistics modules can store their aggregated results in this PostgreSQL database
+- **flink-table-api**: When implemented, can use this database for storing processing results
+
+### Data Persistence
+- Store historical parking statistics and analytics
+- Maintain aggregated data for reporting and dashboards
+- Provide a persistent storage layer for the stream processing pipeline
+
+### Configuration
+To integrate with stream processing applications, configure the database connection using the connection string output:
+
+```bash
+# Get the connection string
+terraform output -raw connection_string
+
+# Use in application configuration
+export DB_CONNECTION_STRING=$(terraform output -raw connection_string)
+```
+
 ## Clean Up
 
 To destroy all resources created by this Terraform configuration:

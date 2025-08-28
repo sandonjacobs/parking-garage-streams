@@ -39,7 +39,7 @@ datagen-test: check-config
 	$(GRADLE_CMD) :datagen:test
 	@echo "✅ Datagen tests completed"
 
-datagen-clean:
+datagen-clean: datagen-stop
 	@echo "🧹 Cleaning datagen build artifacts..."
 	$(GRADLE_CMD) :datagen:clean
 	@rm -f $(DATAGEN_PATH)/datagen.pid

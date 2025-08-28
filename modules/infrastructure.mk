@@ -5,6 +5,11 @@
 .PHONY: confluent-cloud confluent-cloud-deploy confluent-cloud-destroy
 .PHONY: aws aws-deploy aws-destroy
 .PHONY: ks-connectors ks-connectors-deploy ks-connectors-destroy
+.PHONY: db-create-schema db-init
+
+# Database schema configuration
+# Use environment variable if set, otherwise default to parking
+DB_SCHEMA_NAME ?= $(shell if [ -f .env ] && grep -q '^export DB_SCHEMA_NAME=' .env; then grep '^export DB_SCHEMA_NAME=' .env | cut -d'=' -f2; else echo "parking"; fi)
 
 # Infrastructure targets
 infrastructure: infrastructure-deploy
@@ -12,7 +17,7 @@ infrastructure: infrastructure-deploy
 infrastructure-deploy: check-config confluent-cloud-deploy aws-deploy
 	@echo "✅ All infrastructure deployed successfully"
 
-infrastructure-destroy: check-config confluent-cloud-destroy aws-destroy
+infrastructure-destroy: check-config ks-connectors-destroy confluent-cloud-destroy aws-destroy
 	@echo "✅ All infrastructure destroyed successfully"
 
 infrastructure-plan: check-config confluent-cloud-plan aws-plan
@@ -153,3 +158,25 @@ aws-plan: check-config
 	cd $(AWS_PATH) && \
 	terraform init && \
 	terraform plan -out=tfplan
+
+# Database management targets
+db-create-schema: check-config
+	@echo "🗄️  Creating database schema '$(DB_SCHEMA_NAME)' using Docker..."
+	@if [ ! -f "$(PG_CONFIG_HOME)/aws.properties" ]; then \
+		echo "❌ AWS properties file not found. Please run 'make aws-deploy' first."; \
+		exit 1; \
+	fi
+	@echo "📝 Executing schema creation with PostgreSQL Docker container..."
+	@docker run --rm \
+		-e PGPASSWORD=$$(grep 'TF_VAR_db_master_password' .env | cut -d'=' -f2) \
+		postgres:16-alpine \
+		psql -h $$(grep 'postgres_cluster_endpoint' $(PG_CONFIG_HOME)/aws.properties | cut -d'=' -f2) \
+		-p $$(grep 'postgres_cluster_port' $(PG_CONFIG_HOME)/aws.properties | cut -d'=' -f2) \
+		-U $$(grep 'cluster_master_username' $(PG_CONFIG_HOME)/aws.properties | cut -d'=' -f2) \
+		-d $$(grep 'postgres_database_name' $(PG_CONFIG_HOME)/aws.properties | cut -d'=' -f2) \
+		-c "CREATE SCHEMA IF NOT EXISTS $(DB_SCHEMA_NAME); GRANT USAGE ON SCHEMA $(DB_SCHEMA_NAME) TO PUBLIC; GRANT CREATE ON SCHEMA $(DB_SCHEMA_NAME) TO PUBLIC;"
+	@echo "✅ Schema '$(DB_SCHEMA_NAME)' created successfully"
+
+db-init: check-config
+	@echo "🔧 Initializing database management..."
+	@echo "✅ Database management initialized (Docker-based)"

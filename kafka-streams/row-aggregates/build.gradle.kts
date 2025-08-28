@@ -1,6 +1,6 @@
 plugins {
     // Create a fat JAR with all dependencies
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.1.0"
     application
 }
 

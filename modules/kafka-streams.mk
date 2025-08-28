@@ -4,27 +4,27 @@
 .PHONY: $(KAFKA_STREAMS_MODULES:%=%-build) $(KAFKA_STREAMS_MODULES:%=%-run) $(KAFKA_STREAMS_MODULES:%=%-stop) $(KAFKA_STREAMS_MODULES:%=%-test)
 
 # Kafka Streams targets
-kafka-streams: kafka-streams-build
+kafka-streams: kafka-streams-test kafka-streams-run
 
-kafka-streams-build: check-config $(KAFKA_STREAMS_MODULES:%=%-build)
-	@echo "✅ All Kafka Streams applications built successfully"
+#kafka-streams-build: check-config $(KAFKA_STREAMS_MODULES:%=%-build)
+#	@echo "✅ All Kafka Streams applications built successfully"
 
-kafka-streams-run: check-config $(KAFKA_STREAMS_TOPOLOGIES:%=%-run)
+kafka-streams-run: check-config parking-space-status-run row-aggregates-run zone-statistics-run
 	@echo "✅ All Kafka Streams applications started"
 
-kafka-streams-stop: check-config $(KAFKA_STREAMS_TOPOLOGIES:%=%-stop)
+kafka-streams-stop: check-config parking-space-status-stop row-aggregates-stop zone-statistics-stop
 	@echo "✅ All Kafka Streams applications stopped"
 
-kafka-streams-test: check-config $(KAFKA_STREAMS_MODULES:%=%-test)
+kafka-streams-test: check-config parking-space-status-test row-aggregates-test zone-statistics-test
 	@echo "✅ All Kafka Streams tests completed"
 
-kafka-streams-clean: check-config $(KAFKA_STREAMS_MODULES:%=%-clean)
+kafka-streams-clean: check-config parking-space-status-clean row-aggregates-clean zone-statistics-clean kstreams-utils-clean
 	@echo "✅ All Kafka Streams applications cleaned"
 
 # Individual application targets
-parking-space-status-build:
-	@echo "🔨 Building parking-space-status..."
-	$(GRADLE_CMD) :kafka-streams:parking-space-status:build
+#parking-space-status-build:
+#	@echo "🔨 Building parking-space-status..."
+#	$(GRADLE_CMD) :kafka-streams:parking-space-status:build
 
 parking-space-status-run:
 	@echo "🚀 Running parking-space-status..."
@@ -50,7 +50,7 @@ parking-space-status-test:
 	@echo "🧪 Testing parking-space-status..."
 	$(GRADLE_CMD) :kafka-streams:parking-space-status:test
 
-parking-space-status-clean:
+parking-space-status-clean: parking-space-status-stop
 	@echo "🧹 Cleaning parking-space-status..."
 	$(GRADLE_CMD) :kafka-streams:parking-space-status:clean
 	@rm -f $(KAFKA_STREAMS_PATH)/parking-space-status/parking-space-status.pid
@@ -84,7 +84,7 @@ row-aggregates-test:
 	@echo "🧪 Testing row-aggregates..."
 	$(GRADLE_CMD) :kafka-streams:row-aggregates:test
 
-row-aggregates-clean:
+row-aggregates-clean: row-aggregates-stop
 	@echo "🧹 Cleaning row-aggregates..."
 	$(GRADLE_CMD) :kafka-streams:row-aggregates:clean
 	@rm -f $(KAFKA_STREAMS_PATH)/row-aggregates/row-aggregates.pid
@@ -118,7 +118,7 @@ zone-statistics-test:
 	@echo "🧪 Testing zone-statistics..."
 	$(GRADLE_CMD) :kafka-streams:zone-statistics:test
 
-zone-statistics-clean:
+zone-statistics-clean: zone-statistics-stop
 	@echo "🧹 Cleaning zone-statistics..."
 	$(GRADLE_CMD) :kafka-streams:zone-statistics:clean
 	@rm -f $(KAFKA_STREAMS_PATH)/zone-statistics/zone-statistics.pid

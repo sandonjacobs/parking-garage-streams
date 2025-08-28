@@ -28,6 +28,11 @@ help: ## Show this help message
 	@echo "  infrastructure-destroy   - Destroy all infrastructure"
 	@echo "  infrastructure-plan      - Generate plans for all infrastructure"
 	@echo ""
+	@echo "🗄️  Database:"
+	@echo "  db-create-schema - Create database schema (configurable via init-project)"
+	@echo "  db-init          - Initialize database management"
+	@echo "  Usage: make db-create-schema DB_SCHEMA_NAME=my_schema"
+	@echo ""
 	@echo "  Confluent Cloud:"
 	@echo "    confluent-cloud        - Initialize, plan, and apply Confluent Cloud"
 	@echo "    confluent-cloud-init   - Initialize Terraform for Confluent Cloud"
@@ -115,24 +120,30 @@ init-project:
 	else \
 		echo "✅ Directory already exists: $$config_dir"; \
 	fi; \
+	read -p "Specify database schema name (default: parking): " db_schema_name; \
+	if [ -z "$$db_schema_name" ]; then \
+		db_schema_name="parking"; \
+	fi; \
+	echo "export DB_SCHEMA_NAME=$$db_schema_name" >> .env; \
 	read -s -p "Enter database master password: " db_password; \
 	echo ""; \
 	echo "export TF_VAR_db_master_password=$$db_password" >> .env; \
-	echo "✅ Project configuration initialized. PG_CONFIG_HOME set to: $$config_dir"
+	echo "✅ Project configuration initialized. PG_CONFIG_HOME set to: $$config_dir, DB_SCHEMA_NAME set to: $$db_schema_name"
 
 # Complete pipeline
-all: check-config infrastructure datagen
+all: check-config init-project aws confluent-cloud db-create-schema datagen kafka-streams ks-connectors
 	@echo "🎉 All tasks completed successfully!"
 
 # Clean everything
 clean: check-config
 	@echo "🧹 Cleaning all build artifacts and infrastructure..."
-	@make infrastructure-destroy
-	@make datagen-stop
+	@make datagen-clean
 	@make kafka-streams-clean
+	@make infrastructure-destroy
 
 	@make utils-clean
 	@make config-clean
+	$(GRADLE_CMD) clean
 	@echo "✅ Complete cleanup finished"
 
 # Module-specific help targets

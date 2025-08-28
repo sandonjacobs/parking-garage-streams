@@ -28,10 +28,10 @@ output "cluster_arn" {
   value       = aws_rds_cluster.aurora_cluster.arn
 }
 
-output "cluster_instances" {
-  description = "The instance identifiers of the Aurora PostgreSQL cluster"
-  value       = [for instance in aws_rds_cluster_instance.aurora_instances : instance.identifier]
-}
+# output "cluster_instances" {
+#   description = "The instance identifiers of the Aurora PostgreSQL cluster"
+#   value       = [for instance in aws_rds_cluster_instance.aurora_instances : instance.identifier]
+# }
 
 output "security_group_id" {
   description = "The ID of the security group for the Aurora PostgreSQL cluster"

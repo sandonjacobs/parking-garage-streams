@@ -66,13 +66,13 @@ variable "postgres_database_name" {
   default = "parkingstreams"
 }
 
-variable "database_user" {
+variable "db_master_user" {
   type = string
   description = "Database username"
   default = "postgres"
 }
 
-variable "database_password" {
+variable "db_master_password" {
   type = string
 }
 

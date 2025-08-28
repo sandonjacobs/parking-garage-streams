@@ -267,7 +267,7 @@ This module is a dependency for all other modules in the project:
 
 - **datagen**: Uses Protocol Buffer definitions and factory classes
 - **kafka-streams**: All sub-modules use the shared data models
-- **flink-table-api**: Will use Protocol Buffer definitions for data exchange
+
 
 ## Generated Classes
 

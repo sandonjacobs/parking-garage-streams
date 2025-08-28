@@ -1,0 +1,6 @@
+# Runtime files
+*.log
+*.pid
+
+# Build artifacts
+build/

@@ -94,7 +94,7 @@ This AWS RDS module can be used in conjunction with other modules in the Parking
 
 ### Stream Processing Applications
 - **kafka-streams**: The row-aggregates and zone-statistics modules can store their aggregated results in this PostgreSQL database
-- **flink-table-api**: When implemented, can use this database for storing processing results
+
 
 ### Data Persistence
 - Store historical parking statistics and analytics

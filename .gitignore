@@ -40,3 +40,12 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Process ID files ###
+*.pid
+
+### Datagen application files ###
+datagen.log
+datagen.pid
+
+.env

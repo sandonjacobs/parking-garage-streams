@@ -11,12 +11,11 @@ provider "aws" {
   region = var.aws_region
 
   default_tags {
-    tags = {
+    tags = merge(var.other_tags, {
       Project     = "Parking Garage Streams"
       Environment = var.environment
       ManagedBy   = "Terraform"
-      cflt_managed_by = "user"
-      cflt_managed_id = "sjacobs@confluent.io"
-    }
+    })
   }
 }
+

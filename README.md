@@ -1,6 +1,6 @@
 # Parking Garage Streams
 
-A comprehensive multi-module project demonstrating real-time stream processing of parking garage events using modern streaming technologies like Kafka Streams and Apache Flink.
+A comprehensive multi-module project demonstrating real-time stream processing of parking garage events using modern streaming technologies like Kafka Streams.
 
 ## 🏗️ Project Overview
 
@@ -10,7 +10,7 @@ This project showcases a complete real-time parking garage management system tha
 
 - **Real-time Event Processing**: Processes parking events as they occur
 - **Multi-level Aggregation**: Provides analytics at space, row, zone, and garage levels
-- **Scalable Architecture**: Built with Kafka Streams and Apache Flink for horizontal scaling
+- **Scalable Architecture**: Built with Kafka Streams for horizontal scaling
 - **Cloud-Native**: Supports both local development and Confluent Cloud deployment
 - **Type-Safe Data**: Uses Protocol Buffers for efficient, schema-validated data exchange
 - **Infrastructure as Code**: Terraform configurations for AWS and Confluent Cloud
@@ -43,8 +43,7 @@ Contains multiple sub-modules for different processing needs:
 - **`row-aggregates`**: Aggregates parking space statuses by row with capacity calculations
 - **`zone-statistics`**: Aggregates parking space statuses by zone with statistics
 
-#### `flink-table-api` - Apache Flink Implementation
-- Alternative stream processing implementation using Apache Flink Table API
+
 - Provides SQL-like interface for stream processing
 - Currently in development phase
 

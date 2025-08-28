@@ -260,7 +260,7 @@ This module:
 - Produces data consumed by the **kafka-streams** modules
   - Garage information is consumed by the **row-aggregates** and **zone-statistics** modules
   - Parking events are consumed by the **parking-space-status** module
-- Will provide data for the **flink-table-api** module (when implemented)
+
 - Integrates with **confluent-cloud** infrastructure for cloud deployment
 
 ## Dependencies

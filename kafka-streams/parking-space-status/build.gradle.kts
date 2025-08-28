@@ -1,6 +1,7 @@
 plugins {
     // Create a fat JAR with all dependencies
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    application
 }
 
 dependencies {
@@ -20,6 +21,11 @@ tasks.shadowJar {
             "Main-Class" to "io.sandonjacobs.parking.kstreams.MainClassKt"
         ))
     }
+}
+
+// Configure the application plugin
+application {
+    mainClass.set("io.sandonjacobs.parking.kstreams.MainClassKt")
 }
 
 // Make the build task depend on the shadowJar task

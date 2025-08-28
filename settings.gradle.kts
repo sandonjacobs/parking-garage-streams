@@ -30,6 +30,6 @@ include(":kafka-streams:parking-space-status")
 include(":kafka-streams:row-aggregates")
 include(":kafka-streams:zone-statistics")
 
-//include(":flink-table-api")
+
 
 rootProject.name = "parking-garage-streams"

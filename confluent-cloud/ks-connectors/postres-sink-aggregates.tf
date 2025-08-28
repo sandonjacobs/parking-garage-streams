@@ -8,7 +8,7 @@ resource "confluent_connector" "postgres_sink_aggregates" {
   }
 
   config_sensitive = {
-    "connection.password"             = var.database_password
+    "connection.password"             = var.db_master_password
   }
 
   config_nonsensitive = {
@@ -16,7 +16,7 @@ resource "confluent_connector" "postgres_sink_aggregates" {
     "connector.class"                 = "PostgresSink"
     "connection.host"                 = var.postgres_cluster_endpoint
     "connection.port"                 = var.postgres_cluster_port
-    "connection.user"                 = var.database_user
+    "connection.user"                 = var.db_master_user
     "auto.create"                     = "true"
     "auto.evolve"                     = "true"
     "cloud.environment"               = "prod"

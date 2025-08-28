@@ -13,7 +13,7 @@ variable "environment" {
 variable "db_cluster_name" {
   description = "Name of the Aurora PostgreSQL cluster"
   type        = string
-  default     = "sjacobs-demo"
+  default     = "parkinggarage-demo"
 }
 
 variable "db_master_username" {
@@ -55,11 +55,17 @@ variable "db_port" {
 variable "db_backup_retention_period" {
   description = "Number of days to retain backups"
   type        = number
-  default     = 7
+  default     = 3
 }
 
 variable "db_deletion_protection" {
   description = "Enable deletion protection for the database"
   type        = bool
   default     = false
+}
+
+variable "other_tags" {
+  type = map(string)
+  description = "tags for aws resources"
+  default = {}
 }

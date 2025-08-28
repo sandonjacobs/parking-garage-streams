@@ -123,21 +123,39 @@ class RowAggregationTopology(private val parkingSpaceStatusSerde: Serde<ParkingS
         when (vehicleType) {
             VehicleType.CAR -> {
                 if (spaceStatus.status == SpaceStatus.OCCUPIED) {
-                    carStatusBuilder.setOccupied(carStatusBuilder.occupied + 1)
+                    // Only increment if we haven't reached capacity
+                    if (carStatusBuilder.occupied < carStatusBuilder.capacity) {
+                        carStatusBuilder.setOccupied(carStatusBuilder.occupied + 1)
+                    } else {
+                        logger.warn("Cannot occupy car space: row {} is at capacity ({}/{})", 
+                            space.rowId, carStatusBuilder.occupied, carStatusBuilder.capacity)
+                    }
                 } else if (spaceStatus.status == SpaceStatus.VACANT && carStatusBuilder.occupied > 0) {
                     carStatusBuilder.setOccupied(carStatusBuilder.occupied - 1)
                 }
             }
             VehicleType.HANDICAP -> {
                 if (spaceStatus.status == SpaceStatus.OCCUPIED) {
-                    handicapStatusBuilder.setOccupied(handicapStatusBuilder.occupied + 1)
+                    // Only increment if we haven't reached capacity
+                    if (handicapStatusBuilder.occupied < handicapStatusBuilder.capacity) {
+                        handicapStatusBuilder.setOccupied(handicapStatusBuilder.occupied + 1)
+                    } else {
+                        logger.warn("Cannot occupy handicap space: row {} is at capacity ({}/{})", 
+                            space.rowId, handicapStatusBuilder.occupied, handicapStatusBuilder.capacity)
+                    }
                 } else if (spaceStatus.status == SpaceStatus.VACANT && handicapStatusBuilder.occupied > 0) {
                     handicapStatusBuilder.setOccupied(handicapStatusBuilder.occupied - 1)
                 }
             }
             VehicleType.MOTORCYCLE -> {
                 if (spaceStatus.status == SpaceStatus.OCCUPIED) {
-                    motorcycleStatusBuilder.setOccupied(motorcycleStatusBuilder.occupied + 1)
+                    // Only increment if we haven't reached capacity
+                    if (motorcycleStatusBuilder.occupied < motorcycleStatusBuilder.capacity) {
+                        motorcycleStatusBuilder.setOccupied(motorcycleStatusBuilder.occupied + 1)
+                    } else {
+                        logger.warn("Cannot occupy motorcycle space: row {} is at capacity ({}/{})", 
+                            space.rowId, motorcycleStatusBuilder.occupied, motorcycleStatusBuilder.capacity)
+                    }
                 } else if (spaceStatus.status == SpaceStatus.VACANT && motorcycleStatusBuilder.occupied > 0) {
                     motorcycleStatusBuilder.setOccupied(motorcycleStatusBuilder.occupied - 1)
                 }

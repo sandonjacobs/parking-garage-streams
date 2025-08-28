@@ -19,8 +19,10 @@ import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import java.lang.Thread.sleep
 import kotlin.test.assertEquals
 
 class ZoneStatisticsTopologyTest {
@@ -102,14 +104,14 @@ class ZoneStatisticsTopologyTest {
         garageTopic = testDriver.createInputTopic(ZoneStatisticsTopology.PARKING_GARAGE_TOPIC,
             Serdes.String().serializer(), garageSerde.serializer())
 
-        seedEmptyGarage(testGarage)
+        initGarage(testGarage)
 
         outputTopic = testDriver.createOutputTopic(ZoneStatisticsTopology.ZONE_STATISTICS_TOPIC,
             Serdes.String().deserializer(), zoneStatisticsSerde.deserializer()
         )
     }
 
-    private fun seedEmptyGarage(garage: ParkingGarage) {
+    private fun initGarage(garage: ParkingGarage, statusForAll: SpaceStatus = SpaceStatus.VACANT) {
 
         garageTopic.pipeInput(garage.id, garage)
 
@@ -118,7 +120,7 @@ class ZoneStatisticsTopologyTest {
                 for (s in r.parkingSpacesList) {
                     val spaceStatus = ParkingSpaceStatus.newBuilder()
                         .setId(s.id)
-                        .setStatus(SpaceStatus.VACANT)
+                        .setStatus(statusForAll)
                         .setSpace(s)
                         .setLastUpdated(Timestamp.newBuilder().build())
                         .build()
@@ -328,5 +330,43 @@ class ZoneStatisticsTopologyTest {
             "Expected handicap capacity to be $expectedHandicapCapacity but was ${result.handicapStatus.capacity}")
         assertEquals(expectedMotorcycleCapacity, result.motorcycleStatus.capacity,
             "Expected motorcycle capacity to be $expectedMotorcycleCapacity but was ${result.motorcycleStatus.capacity}")
+    }
+
+    @ParameterizedTest
+    @EnumSource(VehicleType::class, names = ["UNRECOGNIZED"], mode = EnumSource.Mode.EXCLUDE)
+    fun `row occupancy should never exceed the capacity`(vehicleType: VehicleType) {
+        initGarage(testGarage, SpaceStatus.OCCUPIED)
+
+        sleep(1500)
+        val randomZone = testGarage.parkingZonesList.random()
+
+        val randomRow = randomZone.parkingRowsList.random()
+
+        // get a random space
+        val randomSpace = randomRow.parkingSpacesList.filter { it.type == vehicleType }.random()
+        // set its status to OCCUPIED
+        val status = ParkingSpaceStatus.newBuilder()
+            .setId(randomSpace.id)
+            .setStatus(SpaceStatus.OCCUPIED) // Change to OCCUPIED
+            .setSpace(randomSpace)
+            .setLastUpdated(Timestamp.newBuilder().build())
+            .setVehicle(Vehicle.newBuilder()
+                .setType(vehicleType)
+                .build())
+            .build()
+
+        spaceStatusTopic.pipeInput(status.id, status)
+
+        val outputRecords = outputTopic.readRecordsToList()
+        assert(outputRecords.isNotEmpty()) { "No output records produced" }
+        val lastRecord = outputRecords.last().value()
+
+        val expectedOccupancy = randomZone.parkingRowsList.flatMap {it.parkingSpacesList}.filter { it.type == vehicleType }.size
+        when (vehicleType) {
+            VehicleType.CAR -> { assertEquals(expectedOccupancy, lastRecord.carStatus.occupied) }
+            VehicleType.MOTORCYCLE -> { assertEquals(expectedOccupancy, lastRecord.motorcycleStatus.occupied) }
+            VehicleType.HANDICAP -> { assertEquals(expectedOccupancy, lastRecord.handicapStatus.occupied) }
+            VehicleType.UNRECOGNIZED -> fail { "What is a $vehicleType?" }
+        }
     }
 }

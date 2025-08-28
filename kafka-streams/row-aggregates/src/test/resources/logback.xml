@@ -13,7 +13,7 @@
     <logger name="org.apache.kafka.clients" level="WARN"/>
     
     <!-- Application specific logging -->
-    <logger name="io.sandonjacobs.parking.kstreams" level="TRACE"/>
+    <logger name="io.sandonjacobs.parking.kstreams" level="WARN"/>
     
     <!-- Reduce noise from other libraries -->
     <logger name="org.apache.kafka.common.utils.AppInfoParser" level="WARN"/>

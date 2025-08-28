@@ -19,7 +19,7 @@ infrastructure-plan: check-config confluent-cloud-plan aws-plan
 	@echo "✅ Infrastructure plans generated"
 
 # Confluent Cloud targets
-confluent-cloud: confluent-cloud-init confluent-cloud-plan confluent-cloud-apply
+confluent-cloud: _confluent-cloud-init confluent-cloud-plan _confluent-cloud-apply
 
 _confluent-cloud-apply:
 	@echo "🚀 Terraform Applying Confluent Cloud infrastructure..."
